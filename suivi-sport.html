@@ -1,0 +1,986 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Suivi Sport</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg: #000000;
+  --panel: rgba(28,28,30,0.72);
+  --panel-2: rgba(44,44,46,0.6);
+  --panel-solid: #1C1C1E;
+  --line: rgba(255,255,255,0.08);
+  --text: #F5F5F7;
+  --muted: #8E8E93;
+  --accent: #E8FF3D;
+  --accent-dim: rgba(232,255,61,0.15);
+  --good: #FF2E63;
+  --good-dim: rgba(255,46,99,0.15);
+  --danger: #FF453A;
+  --radius: 20px;
+  --radius-sm: 14px;
+}
+*{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+html,body{margin:0;padding:0;}
+body{
+  background: var(--bg);
+  color: var(--text);
+  font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','Inter',sans-serif;
+  -webkit-font-smoothing:antialiased;
+  min-height:100vh;
+  display:flex;
+  flex-direction:column;
+}
+h1,h2,h3{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display',sans-serif; margin:0; text-transform:none; letter-spacing:-0.02em; font-weight:700;}
+.mono{font-family:'JetBrains Mono',monospace;}
+button{font-family:inherit; cursor:pointer;}
+input,select{font-family:inherit;}
+
+/* App shell */
+#app{
+  max-width:520px;
+  margin:0 auto;
+  width:100%;
+  flex:1;
+  display:flex;
+  flex-direction:column;
+  min-height:100vh;
+}
+header.topbar{
+  padding:24px 20px 10px 20px;
+  display:flex;
+  align-items:baseline;
+  justify-content:space-between;
+}
+header.topbar .brand{
+  font-size:22px;
+  letter-spacing:-0.02em;
+  text-transform:none;
+  color:var(--text);
+  font-weight:700;
+}
+header.topbar .date{
+  font-family:-apple-system,BlinkMacSystemFont,sans-serif;
+  font-size:13px;
+  color:var(--muted);
+  font-weight:500;
+}
+main{
+  flex:1;
+  padding: 0 16px 90px 16px;
+  overflow-y:auto;
+}
+.view{display:none;}
+.view.active{display:block; animation: fadeIn .25s ease;}
+@keyframes fadeIn{from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:translateY(0);}}
+
+/* Tab bar */
+nav.tabbar{
+  position:fixed;
+  bottom:0; left:0; right:0;
+  max-width:520px;
+  margin:0 auto;
+  background: rgba(20,20,22,0.82);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border-top:0.5px solid rgba(255,255,255,0.12);
+  display:flex;
+  justify-content:space-around;
+  padding: 10px 4px calc(8px + env(safe-area-inset-bottom)) 4px;
+  z-index:50;
+}
+nav.tabbar button{
+  background:none;
+  border:none;
+  color:var(--muted);
+  font-size:10px;
+  letter-spacing:0;
+  text-transform:none;
+  font-weight:500;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:4px;
+  padding:4px 8px;
+  border-radius:10px;
+  flex:1;
+  transition:color .15s ease;
+}
+nav.tabbar button svg{width:22px;height:22px;stroke:var(--muted); fill:none; stroke-width:1.6;}
+nav.tabbar button.active{color:var(--text); font-weight:600;}
+nav.tabbar button.active svg{stroke:var(--accent);}
+
+/* Cards */
+.card{
+  background:var(--panel);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border:0.5px solid var(--line);
+  border-radius:var(--radius);
+  padding:18px;
+  margin-bottom:14px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.25);
+}
+.card-title{
+  font-size:13px;
+  text-transform:none;
+  letter-spacing:0;
+  color:var(--muted);
+  margin-bottom:12px;
+  font-weight:600;
+}
+.empty{
+  text-align:center;
+  padding:40px 16px;
+  color:var(--muted);
+}
+.empty .glyph{font-size:32px; margin-bottom:10px;}
+.empty p{font-size:13px; line-height:1.5;}
+
+/* Buttons */
+.btn{
+  border-radius:14px;
+  padding:13px 16px;
+  border:none;
+  background:var(--panel-2);
+  color:var(--text);
+  font-weight:600;
+  font-size:15px;
+  text-transform:none;
+  letter-spacing:0;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+  transition:transform .12s ease, opacity .12s ease;
+}
+.btn:active{transform:scale(0.97); opacity:0.85;}
+.btn:disabled{opacity:0.35; pointer-events:none;}
+.btn-primary{background:var(--accent); border-color:var(--accent); color:#000; font-weight:700;}
+.btn-good{background:var(--good); border-color:var(--good); color:#fff; font-weight:700;}
+.btn-ghost{background:rgba(255,255,255,0.06); border:none; color:var(--muted);}
+.btn-danger{background:rgba(255,69,58,0.12); border:none; color:var(--danger);}
+.btn-block{width:100%;}
+.btn-sm{padding:9px 14px; font-size:13px; border-radius:12px;}
+
+/* Accueil */
+.hero-day{
+  background:linear-gradient(160deg, rgba(232,255,61,0.08), rgba(28,28,30,0.9));
+  border:0.5px solid var(--line);
+  border-radius:var(--radius);
+  padding:24px;
+  margin-bottom:16px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+}
+.hero-day .eyebrow{color:var(--accent); font-size:12px; text-transform:none; letter-spacing:0; margin-bottom:6px; font-weight:600;}
+.hero-day h2{font-size:24px; margin-bottom:5px;}
+.hero-day .sub{color:var(--muted); font-size:14px; margin-bottom:18px; font-weight:400;}
+.stat-row{display:flex; gap:10px; margin-top:16px;}
+.stat-box{flex:1; background:rgba(255,255,255,0.05); border-radius:14px; padding:12px 10px; text-align:center;}
+.stat-box .num{font-family:-apple-system,sans-serif; font-size:19px; color:var(--text); font-weight:700;}
+.stat-box .lbl{font-size:11px; color:var(--muted); text-transform:none; letter-spacing:0; margin-top:2px; font-weight:400;}
+
+/* Séance builder */
+.exo-row{
+  background:var(--panel-2);
+  border:0.5px solid var(--line);
+  border-radius:var(--radius-sm);
+  padding:14px;
+  margin-bottom:10px;
+}
+.exo-row-head{display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;}
+.exo-row-head .name{font-weight:600; font-size:15px; text-transform:none;}
+.exo-fields{display:flex; gap:8px;}
+.exo-fields > div{flex:1;}
+.field-lbl{font-size:11px; color:var(--muted); text-transform:none; margin-bottom:4px; display:block; font-weight:500;}
+input[type=number], input[type=text], select{
+  width:100%;
+  background:rgba(255,255,255,0.06);
+  border:none;
+  border-radius:10px;
+  color:var(--text);
+  padding:10px 12px;
+  font-size:15px;
+}
+input[type=text]:focus, input[type=number]:focus, select:focus{outline:2px solid var(--accent); border-color:transparent;}
+
+/* Timer / séance active */
+.timer-wrap{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  padding:20px 10px;
+}
+.ring-wrap{position:relative; width:220px; height:220px; margin:10px 0 20px 0;}
+.ring-wrap svg{transform:rotate(-90deg);}
+.ring-bg{fill:none; stroke:var(--line); stroke-width:10;}
+.ring-fg{fill:none; stroke:var(--accent); stroke-width:10; stroke-linecap:round; transition:stroke-dashoffset .3s linear;}
+.ring-fg.rest{stroke:var(--good);}
+.ring-center{
+  position:absolute; inset:0;
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+}
+.ring-center .phase{font-size:12px; letter-spacing:0.02em; text-transform:none; color:var(--muted); margin-bottom:6px; font-weight:600;}
+.ring-center .time{font-family:'JetBrains Mono',monospace; font-size:42px; font-weight:600;}
+.exo-current{text-align:center; margin-bottom:6px;}
+.exo-current .label{color:var(--muted); font-size:12px; text-transform:none; letter-spacing:0; font-weight:500;}
+.exo-current .exname{font-size:21px; font-weight:700; margin-top:4px; text-transform:none; font-family:-apple-system,sans-serif;}
+.exo-next{color:var(--muted); font-size:12px; margin-top:4px;}
+.timer-controls{display:flex; gap:10px; width:100%; margin-top:10px;}
+
+/* Historique */
+.hist-item{
+  border-bottom:1px solid var(--line);
+  padding:12px 0;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+}
+.hist-item:last-child{border-bottom:none;}
+.hist-item .d{}
+.hist-item .d .nm{font-weight:600; font-size:15px; text-transform:none;}
+.hist-item .d .dt{color:var(--muted); font-size:13px; margin-top:2px;}
+.hist-item .vol{font-family:'JetBrains Mono',monospace; color:var(--good); font-size:13px; font-weight:600;}
+
+/* Progression */
+.chart-wrap{background:rgba(255,255,255,0.04); border:0.5px solid var(--line); border-radius:var(--radius-sm); padding:12px;}
+.legend{display:flex; gap:14px; margin-bottom:10px; flex-wrap:wrap;}
+.legend span{font-size:12px; color:var(--muted); display:flex; align-items:center; gap:5px;}
+.legend .dot{width:8px; height:8px; border-radius:50%;}
+
+/* Modal */
+.modal-overlay{
+  position:fixed; inset:0; background:rgba(0,0,0,0.55);
+  display:flex; align-items:flex-end; justify-content:center;
+  z-index:100;
+}
+.modal-overlay.hidden{display:none;}
+.modal{
+  background:rgba(28,28,30,0.92);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  border:0.5px solid var(--line);
+  border-bottom:none;
+  border-radius:24px 24px 0 0;
+  padding:10px 20px 24px 20px;
+  width:100%;
+  max-width:520px;
+  max-height:85vh;
+  overflow-y:auto;
+  position:relative;
+}
+.modal::before{
+  content:'';
+  display:block;
+  width:36px; height:5px;
+  background:rgba(255,255,255,0.25);
+  border-radius:3px;
+  margin:6px auto 16px auto;
+}
+.modal h3{margin-bottom:16px; font-size:19px;}
+.modal .field{margin-bottom:14px;}
+.modal .field label{display:block; font-size:12px; color:var(--muted); text-transform:none; margin-bottom:6px; font-weight:500;}
+.close-x{position:absolute; top:10px; right:16px; background:rgba(255,255,255,0.08); border:none; color:var(--muted); font-size:16px; width:28px; height:28px; border-radius:50%; line-height:1;}
+
+.pill{display:inline-block; background:rgba(255,255,255,0.06); border:none; border-radius:999px; padding:5px 12px; font-size:12px; color:var(--muted); margin-right:6px; margin-bottom:6px; font-weight:500;}
+.pill.active{background:var(--accent-dim); color:var(--accent); font-weight:600;}
+
+::-webkit-scrollbar{width:0px;}
+</style>
+</head>
+<body>
+<div id="app">
+  <header class="topbar">
+    <div class="brand">Suivi Sport</div>
+    <div class="date mono" id="topDate"></div>
+  </header>
+
+  <main>
+    <!-- ACCUEIL -->
+    <section class="view active" id="view-accueil">
+      <div id="heroDayWrap"></div>
+      <div class="card">
+        <div class="card-title">Cette semaine</div>
+        <div id="weekStats" class="stat-row"></div>
+      </div>
+      <div class="card">
+        <div class="card-title">Records personnels récents</div>
+        <div id="recentPRs"></div>
+      </div>
+    </section>
+
+    <!-- SEANCES -->
+    <section class="view" id="view-seances">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
+        <h2 style="font-size:18px;">Mes séances</h2>
+        <button class="btn btn-primary btn-sm" onclick="openSeanceEditor()">+ Créer</button>
+      </div>
+      <div id="seancesList"></div>
+    </section>
+
+    <!-- PROGRESSION -->
+    <section class="view" id="view-progression">
+      <h2 style="font-size:18px; margin-bottom:14px;">Progression</h2>
+      <div class="card">
+        <div class="card-title">Poids du corps</div>
+        <div class="chart-wrap"><canvas id="chartPoids" height="140"></canvas></div>
+        <button class="btn btn-ghost btn-block btn-sm" style="margin-top:10px;" onclick="openPoidsModal()">+ Ajouter une pesée</button>
+      </div>
+      <div class="card">
+        <div class="card-title">Charges par exercice</div>
+        <select id="selectExoChart" onchange="renderChargeChart()" style="margin-bottom:10px;"></select>
+        <div class="chart-wrap"><canvas id="chartCharge" height="140"></canvas></div>
+      </div>
+    </section>
+
+    <!-- HISTORIQUE -->
+    <section class="view" id="view-historique">
+      <h2 style="font-size:18px; margin-bottom:14px;">Historique</h2>
+      <div class="card" id="histCard"></div>
+    </section>
+
+    <!-- EXERCICES -->
+    <section class="view" id="view-exercices">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
+        <h2 style="font-size:18px;">Bibliothèque d'exercices</h2>
+        <button class="btn btn-primary btn-sm" onclick="openExoEditor()">+ Ajouter</button>
+      </div>
+      <div id="exoList"></div>
+    </section>
+  </main>
+
+  <nav class="tabbar">
+    <button class="tab-btn active" data-view="accueil" onclick="switchView('accueil')">
+      <svg viewBox="0 0 24 24"><path d="M3 11.5 12 4l9 7.5"/><path d="M5 10v9h14v-9"/></svg>
+      Accueil
+    </button>
+    <button class="tab-btn" data-view="seances" onclick="switchView('seances')">
+      <svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M9 9h6M9 13h6M9 17h3"/></svg>
+      Séances
+    </button>
+    <button class="tab-btn" data-view="progression" onclick="switchView('progression')">
+      <svg viewBox="0 0 24 24"><path d="M4 19V5M4 19h16"/><path d="M8 15l3-4 3 2 4-6"/></svg>
+      Progression
+    </button>
+    <button class="tab-btn" data-view="historique" onclick="switchView('historique')">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M12 8v4l3 2"/></svg>
+      Historique
+    </button>
+    <button class="tab-btn" data-view="exercices" onclick="switchView('exercices')">
+      <svg viewBox="0 0 24 24"><path d="M6 6l3 3M18 18l-3-3M4 20l6-6M20 4l-6 6"/><rect x="9" y="9" width="6" height="6" rx="1"/></svg>
+      Exercices
+    </button>
+  </nav>
+</div>
+
+<!-- MODAL EXO EDITOR -->
+<div class="modal-overlay hidden" id="modalExo">
+  <div class="modal">
+    <button class="close-x" onclick="closeModal('modalExo')">×</button>
+    <h3>Nouvel exercice</h3>
+    <div class="field"><label>Nom</label><input type="text" id="exoNameInput" placeholder="Ex : Développé couché"></div>
+    <div class="field"><label>Groupe musculaire</label>
+      <select id="exoGroupInput">
+        <option>Pectoraux</option><option>Dos</option><option>Jambes</option>
+        <option>Épaules</option><option>Bras</option><option>Abdos</option><option>Autre</option>
+      </select>
+    </div>
+    <button class="btn btn-primary btn-block" onclick="saveExo()">Enregistrer</button>
+  </div>
+</div>
+
+<!-- MODAL SEANCE EDITOR -->
+<div class="modal-overlay hidden" id="modalSeance">
+  <div class="modal">
+    <button class="close-x" onclick="closeModal('modalSeance')">×</button>
+    <h3 id="seanceEditorTitle">Nouvelle séance</h3>
+    <div class="field"><label>Nom de la séance</label><input type="text" id="seanceNameInput" placeholder="Ex : Push Day"></div>
+    <div class="field"><label>Repos entre exercices (secondes)</label><input type="number" id="seanceRestInput" value="90"></div>
+    <div class="card-title" style="margin-top:16px;">Exercices</div>
+    <div id="seanceExoBuilder"></div>
+    <button class="btn btn-ghost btn-block" onclick="addExoToBuilder()">+ Ajouter un exercice à la séance</button>
+    <button class="btn btn-primary btn-block" style="margin-top:16px;" onclick="saveSeance()">Enregistrer la séance</button>
+  </div>
+</div>
+
+<!-- MODAL POIDS -->
+<div class="modal-overlay hidden" id="modalPoids">
+  <div class="modal">
+    <button class="close-x" onclick="closeModal('modalPoids')">×</button>
+    <h3>Ajouter une pesée</h3>
+    <div class="field"><label>Poids (kg)</label><input type="number" step="0.1" id="poidsInput" placeholder="75.5"></div>
+    <button class="btn btn-primary btn-block" onclick="savePoids()">Enregistrer</button>
+  </div>
+</div>
+
+<!-- MODAL SEANCE ACTIVE (timer) -->
+<div class="modal-overlay hidden" id="modalActive">
+  <div class="modal" style="border-radius:20px; max-height:95vh;">
+    <h3 id="activeSeanceTitle">Séance</h3>
+    <div class="timer-wrap">
+      <div class="exo-current">
+        <div class="label" id="activePhaseLabel">Exercice</div>
+        <div class="exname" id="activeExoName">—</div>
+      </div>
+      <div class="ring-wrap">
+        <svg width="220" height="220" viewBox="0 0 220 220">
+          <circle class="ring-bg" cx="110" cy="110" r="95"></circle>
+          <circle class="ring-fg" id="ringFg" cx="110" cy="110" r="95" stroke-dasharray="597" stroke-dashoffset="0"></circle>
+        </svg>
+        <div class="ring-center">
+          <div class="phase" id="ringPhase">EN COURS</div>
+          <div class="time mono" id="ringTime">00:00</div>
+        </div>
+      </div>
+      <div id="activeSetInfo" style="text-align:center; margin-bottom:10px;"></div>
+      <div class="exo-next" id="activeNextInfo"></div>
+      <div class="timer-controls">
+        <button class="btn btn-ghost" style="flex:1;" id="skipRestBtn" onclick="skipRest()" disabled>Passer le repos</button>
+        <button class="btn btn-primary" style="flex:2;" id="validateSetBtn" onclick="validateSet()">Valider la série</button>
+      </div>
+      <button class="btn btn-danger btn-block" style="margin-top:10px;" onclick="confirmStopSeance()">Quitter la séance</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ---------- STORAGE ---------- */
+const DB_KEY = 'suiviSportData_v1';
+function loadDB(){
+  try{
+    const raw = localStorage.getItem(DB_KEY);
+    if(raw) return JSON.parse(raw);
+  }catch(e){}
+  return { exercices:[], seances:[], historique:[], poids:[] };
+}
+function saveDB(){ localStorage.setItem(DB_KEY, JSON.stringify(db)); }
+let db = loadDB();
+
+/* seed some default exercises if empty */
+if(db.exercices.length===0){
+  db.exercices = [
+    {id:uid(), nom:'Développé couché', groupe:'Pectoraux'},
+    {id:uid(), nom:'Squat', groupe:'Jambes'},
+    {id:uid(), nom:'Tractions', groupe:'Dos'},
+    {id:uid(), nom:'Développé militaire', groupe:'Épaules'},
+    {id:uid(), nom:'Curl biceps', groupe:'Bras'},
+  ];
+  saveDB();
+}
+
+function uid(){ return Math.random().toString(36).slice(2,10)+Date.now().toString(36); }
+
+/* ---------- NAV ---------- */
+function switchView(v){
+  document.querySelectorAll('.view').forEach(el=>el.classList.remove('active'));
+  document.getElementById('view-'+v).classList.add('active');
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.toggle('active', b.dataset.view===v));
+  if(v==='accueil') renderAccueil();
+  if(v==='seances') renderSeancesList();
+  if(v==='historique') renderHistorique();
+  if(v==='exercices') renderExoList();
+  if(v==='progression') renderProgression();
+}
+
+function closeModal(id){ document.getElementById(id).classList.add('hidden'); }
+function openModal(id){ document.getElementById(id).classList.remove('hidden'); }
+
+/* ---------- DATE HEADER ---------- */
+function setTopDate(){
+  const d = new Date();
+  const opts = {weekday:'short', day:'2-digit', month:'short'};
+  document.getElementById('topDate').textContent = d.toLocaleDateString('fr-FR', opts).toUpperCase();
+}
+
+/* ---------- EXERCICES CRUD ---------- */
+function openExoEditor(){
+  document.getElementById('exoNameInput').value='';
+  openModal('modalExo');
+}
+function saveExo(){
+  const nom = document.getElementById('exoNameInput').value.trim();
+  const groupe = document.getElementById('exoGroupInput').value;
+  if(!nom) return;
+  db.exercices.push({id:uid(), nom, groupe});
+  saveDB();
+  closeModal('modalExo');
+  renderExoList();
+}
+function deleteExo(id){
+  if(!confirm('Supprimer cet exercice de la bibliothèque ?')) return;
+  db.exercices = db.exercices.filter(e=>e.id!==id);
+  saveDB();
+  renderExoList();
+}
+function renderExoList(){
+  const list = document.getElementById('exoList');
+  if(db.exercices.length===0){
+    list.innerHTML = `<div class="empty"><div class="glyph">🏋️</div><p>Aucun exercice pour l'instant.<br>Ajoute ton premier exercice pour commencer à construire tes séances.</p></div>`;
+    return;
+  }
+  const groups = {};
+  db.exercices.forEach(e=>{ (groups[e.groupe] = groups[e.groupe]||[]).push(e); });
+  let html='';
+  Object.keys(groups).forEach(g=>{
+    html += `<div class="card-title" style="margin-top:14px;">${g}</div>`;
+    groups[g].forEach(e=>{
+      html += `<div class="exo-row">
+        <div class="exo-row-head">
+          <div class="name">${e.nom}</div>
+          <button class="btn btn-danger btn-sm" onclick="deleteExo('${e.id}')">Suppr.</button>
+        </div>
+      </div>`;
+    });
+  });
+  list.innerHTML = html;
+}
+
+/* ---------- SEANCES CRUD ---------- */
+let builderExos = []; // temp state while editing a seance
+let editingSeanceId = null;
+
+function openSeanceEditor(seance){
+  editingSeanceId = seance ? seance.id : null;
+  document.getElementById('seanceEditorTitle').textContent = seance ? 'Modifier la séance' : 'Nouvelle séance';
+  document.getElementById('seanceNameInput').value = seance ? seance.nom : '';
+  document.getElementById('seanceRestInput').value = seance ? seance.repos : 90;
+  builderExos = seance ? JSON.parse(JSON.stringify(seance.exercices)) : [];
+  renderBuilder();
+  openModal('modalSeance');
+}
+function addExoToBuilder(){
+  if(db.exercices.length===0){ alert("Ajoute d'abord un exercice dans l'onglet Exercices."); return; }
+  builderExos.push({exoId: db.exercices[0].id, series:3, reps:10, charge:0});
+  renderBuilder();
+}
+function removeFromBuilder(idx){
+  builderExos.splice(idx,1);
+  renderBuilder();
+}
+function renderBuilder(){
+  const wrap = document.getElementById('seanceExoBuilder');
+  if(builderExos.length===0){
+    wrap.innerHTML = `<div class="empty" style="padding:20px;"><p>Aucun exercice ajouté.</p></div>`;
+    return;
+  }
+  wrap.innerHTML = builderExos.map((be, idx)=>{
+    const options = db.exercices.map(e=>`<option value="${e.id}" ${e.id===be.exoId?'selected':''}>${e.nom}</option>`).join('');
+    return `<div class="exo-row">
+      <div class="exo-row-head">
+        <select onchange="builderExos[${idx}].exoId=this.value" style="width:75%;">${options}</select>
+        <button class="btn btn-danger btn-sm" onclick="removeFromBuilder(${idx})">×</button>
+      </div>
+      <div class="exo-fields">
+        <div><span class="field-lbl">Séries</span><input type="number" value="${be.series}" onchange="builderExos[${idx}].series=parseInt(this.value)||1"></div>
+        <div><span class="field-lbl">Reps</span><input type="number" value="${be.reps}" onchange="builderExos[${idx}].reps=parseInt(this.value)||1"></div>
+        <div><span class="field-lbl">Charge (kg)</span><input type="number" value="${be.charge}" onchange="builderExos[${idx}].charge=parseFloat(this.value)||0"></div>
+      </div>
+    </div>`;
+  }).join('');
+}
+function saveSeance(){
+  const nom = document.getElementById('seanceNameInput').value.trim();
+  const repos = parseInt(document.getElementById('seanceRestInput').value) || 60;
+  if(!nom){ alert('Donne un nom à ta séance.'); return; }
+  if(builderExos.length===0){ alert('Ajoute au moins un exercice.'); return; }
+  if(editingSeanceId){
+    const s = db.seances.find(s=>s.id===editingSeanceId);
+    s.nom = nom; s.repos = repos; s.exercices = builderExos;
+  } else {
+    db.seances.push({id:uid(), nom, repos, exercices: builderExos});
+  }
+  saveDB();
+  closeModal('modalSeance');
+  renderSeancesList();
+  renderAccueil();
+}
+function deleteSeance(id){
+  if(!confirm('Supprimer cette séance ?')) return;
+  db.seances = db.seances.filter(s=>s.id!==id);
+  saveDB();
+  renderSeancesList();
+  renderAccueil();
+}
+function renderSeancesList(){
+  const list = document.getElementById('seancesList');
+  if(db.seances.length===0){
+    list.innerHTML = `<div class="empty"><div class="glyph">📋</div><p>Aucune séance créée.<br>Crée ta première séance pour commencer à t'entraîner.</p></div>`;
+    return;
+  }
+  list.innerHTML = db.seances.map(s=>{
+    const nbExo = s.exercices.length;
+    return `<div class="card">
+      <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+        <div>
+          <h3 style="font-size:16px;">${s.nom}</h3>
+          <div style="color:var(--muted); font-size:12px; margin-top:4px;">${nbExo} exercice${nbExo>1?'s':''} · repos ${s.repos}s</div>
+        </div>
+      </div>
+      <div style="display:flex; gap:8px; margin-top:14px;">
+        <button class="btn btn-primary" style="flex:1;" onclick="startSeance('${s.id}')">Démarrer</button>
+        <button class="btn btn-ghost btn-sm" onclick='openSeanceEditor(${JSON.stringify(s).replace(/'/g,"&#39;")})'>Modifier</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteSeance('${s.id}')">Suppr.</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function exoName(id){ const e = db.exercices.find(e=>e.id===id); return e? e.nom : '—'; }
+
+/* ---------- ACCUEIL ---------- */
+function renderAccueil(){
+  const wrap = document.getElementById('heroDayWrap');
+  if(db.seances.length===0){
+    wrap.innerHTML = `<div class="hero-day">
+      <div class="eyebrow">Aujourd'hui</div>
+      <h2>Aucune séance prévue</h2>
+      <div class="sub">Crée ta première séance dans l'onglet Séances.</div>
+      <button class="btn btn-primary btn-block" onclick="switchView('seances')">Créer une séance</button>
+    </div>`;
+  } else {
+    const s = db.seances[0];
+    wrap.innerHTML = `<div class="hero-day">
+      <div class="eyebrow">Séance du jour</div>
+      <h2>${s.nom}</h2>
+      <div class="sub">${s.exercices.length} exercices · repos ${s.repos}s entre chaque</div>
+      <button class="btn btn-primary btn-block" onclick="startSeance('${s.id}')">Démarrer la séance</button>
+      <div class="stat-row">
+        <div class="stat-box"><div class="num mono">${db.historique.length}</div><div class="lbl">Séances faites</div></div>
+        <div class="stat-box"><div class="num mono">${currentStreak()}</div><div class="lbl">Jours de suite</div></div>
+      </div>
+    </div>`;
+  }
+
+  // week stats
+  const now = new Date();
+  const weekAgo = new Date(now.getTime() - 7*86400000);
+  const weekSessions = db.historique.filter(h=> new Date(h.date) >= weekAgo);
+  const totalVol = weekSessions.reduce((acc,h)=> acc + h.volume, 0);
+  document.getElementById('weekStats').innerHTML = `
+    <div class="stat-box"><div class="num mono">${weekSessions.length}</div><div class="lbl">Séances</div></div>
+    <div class="stat-box"><div class="num mono">${Math.round(totalVol)}</div><div class="lbl">Volume (kg)</div></div>
+    <div class="stat-box"><div class="num mono">${db.poids.length? db.poids[db.poids.length-1].valeur : '—'}</div><div class="lbl">Poids (kg)</div></div>
+  `;
+
+  // recent PRs
+  const prs = computePRs();
+  const recent = Object.values(prs).sort((a,b)=> new Date(b.date)-new Date(a.date)).slice(0,4);
+  const prsEl = document.getElementById('recentPRs');
+  if(recent.length===0){
+    prsEl.innerHTML = `<p style="color:var(--muted); font-size:13px;">Termine une séance pour voir apparaître tes records.</p>`;
+  } else {
+    prsEl.innerHTML = recent.map(p=>`<div class="hist-item">
+      <div class="d"><div class="nm">${p.nom}</div><div class="dt">${formatDate(p.date)}</div></div>
+      <div class="vol">${p.charge} kg</div>
+    </div>`).join('');
+  }
+}
+function currentStreak(){
+  if(db.historique.length===0) return 0;
+  const days = [...new Set(db.historique.map(h=> h.date.slice(0,10)))].sort().reverse();
+  let streak=0;
+  let cursor = new Date();
+  for(let i=0;i<days.length;i++){
+    const d = new Date(days[i]);
+    const diff = Math.round((cursor - d)/86400000);
+    if(diff<=1){ streak++; cursor=d; } else break;
+  }
+  return streak;
+}
+function computePRs(){
+  const prs = {};
+  db.historique.forEach(h=>{
+    h.exercices.forEach(ex=>{
+      const maxCharge = Math.max(...ex.series.map(s=>s.charge||0), 0);
+      if(!prs[ex.exoId] || maxCharge > prs[ex.exoId].charge){
+        prs[ex.exoId] = {nom: ex.nom, charge:maxCharge, date:h.date};
+      }
+    });
+  });
+  return prs;
+}
+function formatDate(iso){
+  const d = new Date(iso);
+  return d.toLocaleDateString('fr-FR', {day:'2-digit', month:'short', year:'numeric'});
+}
+
+/* ---------- HISTORIQUE ---------- */
+function renderHistorique(){
+  const card = document.getElementById('histCard');
+  if(db.historique.length===0){
+    card.innerHTML = `<div class="empty"><div class="glyph">🕓</div><p>Aucune séance enregistrée pour l'instant.</p></div>`;
+    return;
+  }
+  const sorted = [...db.historique].sort((a,b)=> new Date(b.date)-new Date(a.date));
+  card.innerHTML = sorted.map(h=>`
+    <div class="hist-item" style="cursor:pointer;" onclick='showHistDetail(${JSON.stringify(h).replace(/'/g,"&#39;")})'>
+      <div class="d"><div class="nm">${h.nom}</div><div class="dt">${formatDate(h.date)}</div></div>
+      <div class="vol">${Math.round(h.volume)} kg vol.</div>
+    </div>
+  `).join('');
+}
+function showHistDetail(h){
+  let detail = h.exercices.map(ex=>{
+    const sets = ex.series.map((s,i)=>`Série ${i+1} : ${s.reps} reps × ${s.charge}kg`).join('\n');
+    return `${ex.nom}\n${sets}`;
+  }).join('\n\n');
+  alert(`${h.nom} — ${formatDate(h.date)}\n\n${detail}`);
+}
+
+/* ---------- POIDS ---------- */
+function openPoidsModal(){
+  document.getElementById('poidsInput').value='';
+  openModal('modalPoids');
+}
+function savePoids(){
+  const v = parseFloat(document.getElementById('poidsInput').value);
+  if(!v) return;
+  db.poids.push({date: new Date().toISOString(), valeur:v});
+  saveDB();
+  closeModal('modalPoids');
+  renderProgression();
+  renderAccueil();
+}
+
+/* ---------- PROGRESSION (canvas charts, no lib) ---------- */
+function renderProgression(){
+  // populate exo select from history
+  const sel = document.getElementById('selectExoChart');
+  const exoIds = [...new Set(db.historique.flatMap(h=>h.exercices.map(e=>e.exoId)))];
+  if(exoIds.length===0){
+    sel.innerHTML = `<option>Aucune donnée</option>`;
+  } else {
+    sel.innerHTML = exoIds.map(id=>`<option value="${id}">${exoName(id)}</option>`).join('');
+  }
+  drawLineChart('chartPoids', db.poids.map(p=>({x:p.date, y:p.valeur})), '#FF2E63', 'kg');
+  renderChargeChart();
+}
+function renderChargeChart(){
+  const sel = document.getElementById('selectExoChart');
+  const exoId = sel.value;
+  const points = [];
+  db.historique.forEach(h=>{
+    h.exercices.forEach(ex=>{
+      if(ex.exoId===exoId){
+        const maxC = Math.max(...ex.series.map(s=>s.charge||0),0);
+        points.push({x:h.date, y:maxC});
+      }
+    });
+  });
+  drawLineChart('chartCharge', points, '#E8FF3D', 'kg');
+}
+function drawLineChart(canvasId, points, color, unit){
+  const canvas = document.getElementById(canvasId);
+  const ctx = canvas.getContext('2d');
+  const dpr = window.devicePixelRatio || 1;
+  const w = canvas.clientWidth || 300, h = 140;
+  canvas.width = w*dpr; canvas.height = h*dpr;
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  ctx.clearRect(0,0,w,h);
+  if(points.length===0){
+    ctx.fillStyle = '#78787E';
+    ctx.font = '12px Inter';
+    ctx.fillText('Pas encore de données', 10, h/2);
+    return;
+  }
+  points.sort((a,b)=> new Date(a.x)-new Date(b.x));
+  const ys = points.map(p=>p.y);
+  const minY = Math.min(...ys)*0.95, maxY = Math.max(...ys)*1.05 || 1;
+  const pad=20;
+  const stepX = points.length>1 ? (w-2*pad)/(points.length-1) : 0;
+  function px(i){ return pad + i*stepX; }
+  function py(v){ return h-pad - ( (v-minY)/(maxY-minY||1) )*(h-2*pad); }
+
+  // grid
+  ctx.strokeStyle = '#2A2A2E';
+  ctx.lineWidth=1;
+  for(let i=0;i<=3;i++){
+    const y = pad + i*(h-2*pad)/3;
+    ctx.beginPath(); ctx.moveTo(pad,y); ctx.lineTo(w-pad,y); ctx.stroke();
+  }
+
+  // line
+  ctx.strokeStyle = color;
+  ctx.lineWidth = 2.5;
+  ctx.beginPath();
+  points.forEach((p,i)=>{
+    const x=px(i), y=py(p.y);
+    if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+  });
+  ctx.stroke();
+
+  // points
+  ctx.fillStyle = color;
+  points.forEach((p,i)=>{
+    ctx.beginPath();
+    ctx.arc(px(i), py(p.y), 3, 0, Math.PI*2);
+    ctx.fill();
+  });
+
+  // last value label
+  const last = points[points.length-1];
+  ctx.fillStyle = '#F5F5F0';
+  ctx.font = '700 12px "JetBrains Mono"';
+  ctx.fillText(`${last.y} ${unit}`, w-pad-36, py(last.y)-10);
+}
+
+/* ---------- SEANCE ACTIVE (timer engine) ---------- */
+let activeSession = null; // {seance, currentExoIdx, currentSet, phase:'exo'|'repos', timerHandle, elapsed, results:[]}
+
+function startSeance(seanceId){
+  const s = db.seances.find(s=>s.id===seanceId);
+  if(!s) return;
+  activeSession = {
+    seance: s,
+    exoIdx: 0,
+    setIdx: 0,
+    phase: 'ready', // ready -> exo (manual) -> repos (timer) -> exo ...
+    startedAt: new Date().toISOString(),
+    results: s.exercices.map(ex=>({exoId:ex.exoId, nom:exoName(ex.exoId), series:[]})),
+  };
+  document.getElementById('activeSeanceTitle').textContent = s.nom;
+  openModal('modalActive');
+  renderActiveState();
+}
+function currentExo(){
+  if(!activeSession) return null;
+  return activeSession.seance.exercices[activeSession.exoIdx] || null;
+}
+function renderActiveState(){
+  const ex = currentExo();
+  if(!ex){ finishSeance(); return; }
+  document.getElementById('activePhaseLabel').textContent = `Exercice ${activeSession.exoIdx+1}/${activeSession.seance.exercices.length}`;
+  document.getElementById('activeExoName').textContent = exoName(ex.exoId);
+  document.getElementById('activeSetInfo').innerHTML = `<span class="pill active">Série ${activeSession.setIdx+1} / ${ex.series}</span> <span class="pill">${ex.reps} reps · ${ex.charge} kg</span>`;
+  const nextIdx = activeSession.exoIdx+1;
+  document.getElementById('activeNextInfo').textContent = nextIdx < activeSession.seance.exercices.length
+    ? `Suivant : ${exoName(activeSession.seance.exercices[nextIdx].exoId)}`
+    : 'Dernier exercice de la séance';
+  document.getElementById('ringPhase').textContent = 'PRÊT';
+  document.getElementById('ringTime').textContent = '--:--';
+  document.getElementById('ringFg').classList.remove('rest');
+  document.getElementById('ringFg').style.strokeDashoffset = 0;
+  document.getElementById('validateSetBtn').textContent = 'Valider la série';
+  document.getElementById('validateSetBtn').onclick = validateSet;
+  document.getElementById('skipRestBtn').disabled = true;
+}
+
+function validateSet(){
+  if(!activeSession) return;
+  const ex = currentExo();
+  if(!ex){ finishSeance(); return; }
+  const chargeUsed = ex.charge;
+  const repsUsed = ex.reps;
+  activeSession.results[activeSession.exoIdx].series.push({reps:repsUsed, charge:chargeUsed});
+
+  const isLastSet = activeSession.setIdx >= ex.series-1;
+  const isLastExo = activeSession.exoIdx >= activeSession.seance.exercices.length-1;
+
+  if(isLastSet && isLastExo){
+    finishSeance();
+    return;
+  }
+  // start rest timer
+  startRest();
+}
+let timerInterval = null;
+function startRest(){
+  if(!activeSession) return;
+  const total = activeSession.seance.repos;
+  let remaining = total;
+  document.getElementById('ringPhase').textContent = 'REPOS';
+  document.getElementById('ringFg').classList.add('rest');
+  document.getElementById('validateSetBtn').disabled = true;
+  document.getElementById('skipRestBtn').disabled = false;
+  updateRingDisplay(remaining, total);
+  if(timerInterval) clearInterval(timerInterval);
+  timerInterval = setInterval(()=>{
+    remaining--;
+    updateRingDisplay(remaining, total);
+    if(remaining<=0){
+      clearInterval(timerInterval);
+      advanceAfterRest();
+    }
+  }, 1000);
+}
+function updateRingDisplay(remaining, total){
+  const circumference = 2*Math.PI*95;
+  const ratio = Math.max(remaining,0)/total;
+  document.getElementById('ringFg').style.strokeDashoffset = circumference*(1-ratio);
+  const mm = String(Math.floor(Math.max(remaining,0)/60)).padStart(2,'0');
+  const ss = String(Math.max(remaining,0)%60).padStart(2,'0');
+  document.getElementById('ringTime').textContent = `${mm}:${ss}`;
+}
+function skipRest(){
+  if(timerInterval) clearInterval(timerInterval);
+  timerInterval = null;
+  advanceAfterRest();
+}
+function advanceAfterRest(){
+  if(!activeSession) return;
+  const ex = currentExo();
+  if(!ex){ finishSeance(); return; }
+  if(activeSession.setIdx < ex.series-1){
+    activeSession.setIdx++;
+  } else {
+    activeSession.exoIdx++;
+    activeSession.setIdx = 0;
+  }
+  if(!currentExo()){ finishSeance(); return; }
+  document.getElementById('ringFg').classList.remove('rest');
+  document.getElementById('ringFg').style.strokeDashoffset = 0;
+  document.getElementById('ringPhase').textContent = 'PRÊT';
+  document.getElementById('ringTime').textContent = '--:--';
+  document.getElementById('validateSetBtn').disabled = false;
+  document.getElementById('validateSetBtn').textContent = 'Valider la série';
+  document.getElementById('validateSetBtn').onclick = validateSet;
+  document.getElementById('skipRestBtn').disabled = true;
+  renderActiveState();
+}
+function finishSeance(){
+  if(timerInterval) clearInterval(timerInterval);
+  timerInterval = null;
+  if(!activeSession){ closeModal('modalActive'); return; }
+  const results = activeSession.results.filter(ex => ex.series.length > 0);
+  const volume = results.reduce((acc,ex)=> acc + ex.series.reduce((a,s)=>a+(s.reps*s.charge),0), 0);
+  if(results.length > 0){
+    db.historique.push({
+      id:uid(),
+      nom: activeSession.seance.nom,
+      date: new Date().toISOString(),
+      volume,
+      exercices: results,
+    });
+    saveDB();
+  }
+  activeSession = null;
+  closeModal('modalActive');
+  switchView('accueil');
+  renderHistorique();
+}
+function confirmStopSeance(){
+  if(timerInterval) clearInterval(timerInterval);
+  timerInterval = null;
+  if(!activeSession){ closeModal('modalActive'); return; }
+  const hasProgress = activeSession.results.some(ex => ex.series.length > 0);
+  if(!hasProgress || confirm('Arrêter la séance en cours ? La progression déjà enregistrée sera sauvegardée, le reste sera perdu.')){
+    if(hasProgress){
+      finishSeance();
+    } else {
+      activeSession = null;
+      closeModal('modalActive');
+    }
+  }
+}
+
+/* ---------- INIT ---------- */
+setTopDate();
+renderAccueil();
+renderSeancesList();
+renderExoList();
+</script>
+</body>
+</html>
