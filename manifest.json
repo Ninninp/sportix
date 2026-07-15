@@ -1,6 +1,6 @@
 {
-  "name": "Suivi Sport",
-  "short_name": "Suivi Sport",
+  "name": "SPORTIX",
+  "short_name": "SPORTIX",
   "description": "Suivi de séances, chronomètre de repos et progression",
   "start_url": "./index.html",
   "scope": "./",
