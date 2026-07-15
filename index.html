@@ -3,16 +3,16 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Suivi Sport</title>
+<title>SPORTIX</title>
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#000000">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Suivi Sport">
+<meta name="apple-mobile-web-app-title" content="SPORTIX">
 <link rel="apple-touch-icon" href="icon-192.png">
 <link rel="icon" href="icon-192.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Bebas+Neue&display=swap" rel="stylesheet">
 <style>
 :root{
   --bg: #000000;
@@ -63,11 +63,13 @@ header.topbar{
   justify-content:space-between;
 }
 header.topbar .brand{
-  font-size:22px;
-  letter-spacing:-0.02em;
-  text-transform:none;
+  font-family:'Bebas Neue', -apple-system, sans-serif;
+  font-size:30px;
+  letter-spacing:0.04em;
+  text-transform:uppercase;
   color:var(--text);
-  font-weight:700;
+  font-weight:400;
+  line-height:1;
 }
 header.topbar .date{
   font-family:-apple-system,BlinkMacSystemFont,sans-serif;
@@ -103,7 +105,7 @@ nav.tabbar button{
   background:none;
   border:none;
   color:var(--muted);
-  font-size:10px;
+  font-size:9.5px;
   letter-spacing:0;
   text-transform:none;
   font-weight:500;
@@ -111,7 +113,7 @@ nav.tabbar button{
   flex-direction:column;
   align-items:center;
   gap:4px;
-  padding:4px 8px;
+  padding:4px 4px;
   border-radius:10px;
   flex:1;
   transition:color .15s ease;
@@ -200,6 +202,9 @@ nav.tabbar button.active svg{stroke:var(--accent);}
 }
 .exo-row-head{display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;}
 .exo-row-head .name{font-weight:600; font-size:15px; text-transform:none;}
+.pr-line{font-size:12px; color:var(--good); font-weight:500;}
+.pr-line.muted-line{color:var(--muted);}
+.pr-line .pr-value{font-family:'JetBrains Mono',monospace; font-weight:600;}
 .exo-fields{display:flex; gap:8px;}
 .exo-fields > div{flex:1;}
 .field-lbl{font-size:11px; color:var(--muted); text-transform:none; margin-bottom:4px; display:block; font-weight:500;}
@@ -316,19 +321,29 @@ input[type=text]:focus, input[type=number]:focus, select:focus{outline:2px solid
 .pill-scroll::-webkit-scrollbar{display:none;}
 .pill-sep{width:1px; height:20px; background:var(--line); flex-shrink:0;}
 
+/* Calendrier */
+#calGrid{display:grid; grid-template-columns:repeat(7, 1fr); gap:4px;}
+.cal-dow{text-align:center; font-size:10px; color:var(--muted); font-weight:600; padding-bottom:4px;}
+.cal-cell{aspect-ratio:1; border-radius:8px; border:1px solid transparent; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; font-size:11px; position:relative;}
+.cal-cell.empty{visibility:hidden;}
+.cal-cell.today .cal-daynum{color:var(--accent); font-weight:700;}
+.cal-daynum{color:var(--text);}
+.cal-dot{width:5px; height:5px; border-radius:50%;}
+
 ::-webkit-scrollbar{width:0px;}
 </style>
 </head>
 <body>
 <div id="app">
   <header class="topbar">
-    <div class="brand">Suivi Sport</div>
+    <div class="brand">SPORTI<span style="color:var(--accent);">X</span></div>
     <div class="date mono" id="topDate"></div>
   </header>
 
   <main>
     <!-- ACCUEIL -->
     <section class="view active" id="view-accueil">
+      <div id="blocBannerWrap"></div>
       <div id="heroDayWrap"></div>
       <div class="card">
         <div class="card-title">Cette semaine</div>
@@ -370,11 +385,6 @@ input[type=text]:focus, input[type=number]:focus, select:focus{outline:2px solid
         <div class="card-title">Volume total par séance</div>
         <div class="chart-wrap"><canvas id="chartVolume" height="140"></canvas></div>
       </div>
-      <div class="card">
-        <div class="card-title">Charges par exercice</div>
-        <select id="selectExoChart" onchange="renderChargeChart()" style="margin-bottom:10px;"></select>
-        <div class="chart-wrap"><canvas id="chartCharge" height="140"></canvas></div>
-      </div>
     </section>
 
     <!-- HISTORIQUE -->
@@ -390,6 +400,29 @@ input[type=text]:focus, input[type=number]:focus, select:focus{outline:2px solid
         <button class="btn btn-primary btn-sm" onclick="openExoEditor()">+ Ajouter</button>
       </div>
       <div id="exoList"></div>
+    </section>
+
+    <!-- CALENDRIER -->
+    <section class="view" id="view-calendrier">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
+        <h2 style="font-size:18px;">Calendrier des blocs</h2>
+        <button class="btn btn-primary btn-sm" onclick="openBlocEditor()">+ Créer</button>
+      </div>
+
+      <div class="card">
+        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:14px;">
+          <button class="btn btn-ghost btn-sm" onclick="calShiftMonth(-1)">‹</button>
+          <div id="calMonthLabel" style="font-weight:600; font-size:15px;"></div>
+          <button class="btn btn-ghost btn-sm" onclick="calShiftMonth(1)">›</button>
+        </div>
+        <div id="calGrid"></div>
+        <div id="calLegend" class="legend" style="margin-top:12px;"></div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Mes blocs</div>
+        <div id="blocsList"></div>
+      </div>
     </section>
   </main>
 
@@ -413,6 +446,10 @@ input[type=text]:focus, input[type=number]:focus, select:focus{outline:2px solid
     <button class="tab-btn" data-view="exercices" onclick="switchView('exercices')">
       <svg viewBox="0 0 24 24"><path d="M6 6l3 3M18 18l-3-3M4 20l6-6M20 4l-6 6"/><rect x="9" y="9" width="6" height="6" rx="1"/></svg>
       Exercices
+    </button>
+    <button class="tab-btn" data-view="calendrier" onclick="switchView('calendrier')">
+      <svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 9h18M8 3v4M16 3v4"/></svg>
+      Calendrier
     </button>
   </nav>
 </div>
@@ -461,6 +498,32 @@ input[type=text]:focus, input[type=number]:focus, select:focus{outline:2px solid
   </div>
 </div>
 
+<!-- MODAL BLOC -->
+<div class="modal-overlay hidden" id="modalBloc">
+  <div class="modal">
+    <button class="close-x" onclick="closeModal('modalBloc')">×</button>
+    <h3 id="blocEditorTitle">Nouveau bloc</h3>
+    <div class="field"><label>Nom du bloc</label><input type="text" id="blocNameInput" placeholder="Ex : Spécialisation dos"></div>
+    <div class="field">
+      <label>Type</label>
+      <select id="blocTypeInput">
+        <option value="specialisation">Spécialisation</option>
+        <option value="volume">Volume</option>
+        <option value="force">Force</option>
+        <option value="deload">Deload</option>
+        <option value="autre">Autre</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>Couleur</label>
+      <div id="blocColorSwatches" style="display:flex; gap:10px;"></div>
+    </div>
+    <div class="field"><label>Date de début</label><input type="date" id="blocStartInput"></div>
+    <div class="field"><label>Durée (semaines)</label><input type="number" id="blocWeeksInput" value="4" min="1"></div>
+    <button class="btn btn-primary btn-block" onclick="saveBloc()">Enregistrer le bloc</button>
+  </div>
+</div>
+
 <!-- MODAL SEANCE ACTIVE (timer) -->
 <div class="modal-overlay hidden" id="modalActive">
   <div class="modal" style="border-radius:20px; max-height:95vh;">
@@ -500,6 +563,22 @@ input[type=text]:focus, input[type=number]:focus, select:focus{outline:2px solid
   </div>
 </div>
 
+<!-- MODAL EXO DETAIL -->
+<div class="modal-overlay hidden" id="modalExoDetail">
+  <div class="modal">
+    <button class="close-x" onclick="closeModal('modalExoDetail')">×</button>
+    <h3 id="exoDetailName">Exercice</h3>
+    <div id="exoDetailGroup" class="pill" style="margin-bottom:16px;"></div>
+    <div class="stat-row" style="margin-bottom:16px;">
+      <div class="stat-box"><div class="num mono" id="exoDetailPR">—</div><div class="lbl">Record (kg)</div></div>
+      <div class="stat-box"><div class="num mono" id="exoDetailCount">0</div><div class="lbl">Séances faites</div></div>
+      <div class="stat-box"><div class="num mono" id="exoDetailLast">—</div><div class="lbl">Dernière fois</div></div>
+    </div>
+    <div class="card-title">Évolution de la charge</div>
+    <div class="chart-wrap"><canvas id="chartExoDetail" height="140"></canvas></div>
+  </div>
+</div>
+
 <!-- MODAL EXO PICKER (swap current / add new, mid-session) -->
 <div class="modal-overlay hidden" id="modalExoPicker">
   <div class="modal" style="max-height:80vh;">
@@ -529,10 +608,11 @@ function loadDB(){
     const raw = localStorage.getItem(DB_KEY);
     if(raw) return JSON.parse(raw);
   }catch(e){}
-  return { exercices:[], seances:[], historique:[], poids:[] };
+  return { exercices:[], seances:[], historique:[], poids:[], blocs:[] };
 }
 function saveDB(){ localStorage.setItem(DB_KEY, JSON.stringify(db)); }
 let db = loadDB();
+if(!Array.isArray(db.blocs)) db.blocs = [];
 
 /* seed some default exercises if empty */
 if(db.exercices.length===0){
@@ -597,7 +677,7 @@ function importData(event){
     const looksValid = incoming && Array.isArray(incoming.exercices) && Array.isArray(incoming.seances)
       && Array.isArray(incoming.historique) && Array.isArray(incoming.poids);
     if(!looksValid){
-      alert("Ce fichier ne semble pas être une sauvegarde Suivi Sport valide.");
+      alert("Ce fichier ne semble pas être une sauvegarde SPORTIX valide.");
       event.target.value = '';
       return;
     }
@@ -630,6 +710,7 @@ function switchView(v){
   if(v==='historique') renderHistorique();
   if(v==='exercices') renderExoList();
   if(v==='progression') renderProgression();
+  if(v==='calendrier') renderCalendrier();
 }
 
 function closeModal(id){ document.getElementById(id).classList.add('hidden'); }
@@ -669,21 +750,50 @@ function renderExoList(){
     list.innerHTML = `<div class="empty"><div class="glyph">🏋️</div><p>Aucun exercice pour l'instant.<br>Ajoute ton premier exercice pour commencer à construire tes séances.</p></div>`;
     return;
   }
+  const prs = computePRs();
   const groups = {};
   db.exercices.forEach(e=>{ (groups[e.groupe] = groups[e.groupe]||[]).push(e); });
   let html='';
   Object.keys(groups).forEach(g=>{
     html += `<div class="card-title" style="margin-top:14px;">${g}</div>`;
     groups[g].forEach(e=>{
-      html += `<div class="exo-row">
+      const pr = prs[e.id];
+      const prLine = pr
+        ? `<div class="pr-line">PR : <span class="pr-value">${pr.charge} kg</span> · ${formatDate(pr.date)}</div>`
+        : `<div class="pr-line muted-line">Aucun PR enregistré pour l'instant</div>`;
+      html += `<div class="exo-row" style="cursor:pointer;" onclick="openExoDetail('${e.id}')">
         <div class="exo-row-head">
           <div class="name">${e.nom}</div>
-          <button class="btn btn-danger btn-sm" onclick="deleteExo('${e.id}')">Suppr.</button>
+          <button class="btn btn-danger btn-sm" onclick="event.stopPropagation(); deleteExo('${e.id}')">Suppr.</button>
         </div>
+        ${prLine}
       </div>`;
     });
   });
   list.innerHTML = html;
+}
+
+function openExoDetail(exoId){
+  const e = db.exercices.find(x=>x.id===exoId);
+  if(!e) return;
+  const prs = computePRs();
+  const pr = prs[exoId];
+  const sessionsWithExo = db.historique.filter(h => h.exercices.some(ex=>ex.exoId===exoId && ex.series.length>0));
+  const lastSession = sessionsWithExo.length > 0
+    ? [...sessionsWithExo].sort((a,b)=> new Date(b.date)-new Date(a.date))[0]
+    : null;
+
+  document.getElementById('exoDetailName').textContent = e.nom;
+  document.getElementById('exoDetailGroup').textContent = e.groupe;
+  document.getElementById('exoDetailPR').textContent = pr ? pr.charge : '—';
+  document.getElementById('exoDetailCount').textContent = sessionsWithExo.length;
+  document.getElementById('exoDetailLast').textContent = lastSession ? formatDate(lastSession.date) : '—';
+
+  openModal('modalExoDetail');
+  // draw after the modal is visible so canvas has a real width
+  requestAnimationFrame(()=>{
+    drawLineChart('chartExoDetail', getChargePoints(exoId), '#E8FF3D', 'kg');
+  });
 }
 
 /* ---------- SEANCES CRUD ---------- */
@@ -817,6 +927,20 @@ function resetAccueilToToday(){
   renderAccueil();
 }
 function renderAccueil(){
+  const bannerWrap = document.getElementById('blocBannerWrap');
+  const match = findBlocForDate(new Date());
+  if(match){
+    const totalWeeks = match.bloc.semaines;
+    bannerWrap.innerHTML = `<div class="card" style="border-color:${match.bloc.couleur}; margin-bottom:10px; padding:12px 16px;">
+      <div style="display:flex; align-items:center; gap:10px;">
+        <span style="width:10px; height:10px; border-radius:50%; background:${match.bloc.couleur}; display:inline-block; flex-shrink:0;"></span>
+        <div style="font-size:13px; font-weight:600;">Semaine ${match.weekNum}/${totalWeeks} · ${match.bloc.nom}</div>
+      </div>
+    </div>`;
+  } else {
+    bannerWrap.innerHTML = '';
+  }
+
   const wrap = document.getElementById('heroDayWrap');
   if(db.seances.length===0){
     accueilSelectedId = null;
@@ -969,33 +1093,160 @@ function savePoids(){
   renderAccueil();
 }
 
+/* ---------- BLOCS / CALENDRIER ---------- */
+const BLOC_COLORS = ['#E8FF3D', '#FF2E63', '#3DA5FF', '#B83DFF', '#3DFFC4', '#FF9F3D'];
+const BLOC_TYPE_LABELS = {specialisation:'Spécialisation', volume:'Volume', force:'Force', deload:'Deload', autre:'Autre'};
+let editingBlocId = null;
+let selectedBlocColor = BLOC_COLORS[0];
+let calCursor = new Date(); // month currently displayed in the calendar
+
+function toDateOnly(d){
+  const x = new Date(d);
+  x.setHours(0,0,0,0);
+  return x;
+}
+function findBlocForDate(date){
+  const d = toDateOnly(date).getTime();
+  for(const b of db.blocs){
+    const start = toDateOnly(b.dateDebut).getTime();
+    const end = start + b.semaines*7*86400000;
+    if(d >= start && d < end){
+      const weekNum = Math.floor((d - start)/(7*86400000)) + 1;
+      return {bloc:b, weekNum};
+    }
+  }
+  return null;
+}
+
+function openBlocEditor(bloc){
+  editingBlocId = bloc ? bloc.id : null;
+  document.getElementById('blocEditorTitle').textContent = bloc ? 'Modifier le bloc' : 'Nouveau bloc';
+  document.getElementById('blocNameInput').value = bloc ? bloc.nom : '';
+  document.getElementById('blocTypeInput').value = bloc ? bloc.type : 'specialisation';
+  document.getElementById('blocStartInput').value = bloc ? bloc.dateDebut.slice(0,10) : new Date().toISOString().slice(0,10);
+  document.getElementById('blocWeeksInput').value = bloc ? bloc.semaines : 4;
+  selectedBlocColor = bloc ? bloc.couleur : BLOC_COLORS[0];
+  renderBlocColorSwatches();
+  openModal('modalBloc');
+}
+function renderBlocColorSwatches(){
+  const wrap = document.getElementById('blocColorSwatches');
+  wrap.innerHTML = BLOC_COLORS.map(c => `
+    <div onclick="selectBlocColor('${c}')" style="width:30px; height:30px; border-radius:50%; background:${c}; cursor:pointer; border:2px solid ${c===selectedBlocColor ? '#fff' : 'transparent'}; box-shadow:${c===selectedBlocColor ? '0 0 0 2px '+c : 'none'};"></div>
+  `).join('');
+}
+function selectBlocColor(c){
+  selectedBlocColor = c;
+  renderBlocColorSwatches();
+}
+function saveBloc(){
+  const nom = document.getElementById('blocNameInput').value.trim();
+  const type = document.getElementById('blocTypeInput').value;
+  const dateDebut = document.getElementById('blocStartInput').value;
+  const semaines = parseInt(document.getElementById('blocWeeksInput').value) || 1;
+  if(!nom){ alert('Donne un nom à ton bloc.'); return; }
+  if(!dateDebut){ alert('Choisis une date de début.'); return; }
+  if(editingBlocId){
+    const b = db.blocs.find(x=>x.id===editingBlocId);
+    b.nom = nom; b.type = type; b.dateDebut = new Date(dateDebut).toISOString(); b.semaines = semaines; b.couleur = selectedBlocColor;
+  } else {
+    db.blocs.push({id:uid(), nom, type, dateDebut: new Date(dateDebut).toISOString(), semaines, couleur: selectedBlocColor});
+  }
+  saveDB();
+  closeModal('modalBloc');
+  renderCalendrier();
+  renderAccueil();
+}
+function deleteBloc(id){
+  showConfirm('Supprimer ce bloc ?', ()=>{
+    db.blocs = db.blocs.filter(b=>b.id!==id);
+    saveDB();
+    renderCalendrier();
+    renderAccueil();
+  });
+}
+function calShiftMonth(delta){
+  calCursor = new Date(calCursor.getFullYear(), calCursor.getMonth()+delta, 1);
+  renderCalendrier();
+}
+function renderCalendrier(){
+  const year = calCursor.getFullYear();
+  const month = calCursor.getMonth();
+  document.getElementById('calMonthLabel').textContent =
+    calCursor.toLocaleDateString('fr-FR', {month:'long', year:'numeric'});
+
+  const firstOfMonth = new Date(year, month, 1);
+  const startOffset = (firstOfMonth.getDay() + 6) % 7; // make Monday=0
+  const daysInMonth = new Date(year, month+1, 0).getDate();
+  const todayStr = toDateOnly(new Date()).getTime();
+
+  let cells = '';
+  ['L','M','M','J','V','S','D'].forEach(d=> cells += `<div class="cal-dow">${d}</div>`);
+  for(let i=0;i<startOffset;i++) cells += `<div class="cal-cell empty"></div>`;
+  for(let day=1; day<=daysInMonth; day++){
+    const d = new Date(year, month, day);
+    const match = findBlocForDate(d);
+    const isToday = toDateOnly(d).getTime() === todayStr;
+    const style = match ? `background:${match.bloc.couleur}22; border-color:${match.bloc.couleur};` : '';
+    cells += `<div class="cal-cell ${isToday?'today':''}" style="${style}">
+      <span class="cal-daynum">${day}</span>
+      ${match ? `<span class="cal-dot" style="background:${match.bloc.couleur};"></span>` : ''}
+    </div>`;
+  }
+  document.getElementById('calGrid').innerHTML = cells;
+
+  // legend: blocs visible in this month
+  const visibleBlocs = db.blocs.filter(b=>{
+    const start = toDateOnly(b.dateDebut);
+    const end = new Date(start.getTime() + b.semaines*7*86400000);
+    return start <= new Date(year, month+1, 0) && end > new Date(year, month, 1);
+  });
+  document.getElementById('calLegend').innerHTML = visibleBlocs.length
+    ? visibleBlocs.map(b=>`<span><span class="dot" style="background:${b.couleur};"></span>${b.nom}</span>`).join('')
+    : '';
+
+  renderBlocsList();
+}
+function renderBlocsList(){
+  const wrap = document.getElementById('blocsList');
+  if(db.blocs.length===0){
+    wrap.innerHTML = `<div class="empty"><div class="glyph">🗓️</div><p>Aucun bloc créé.<br>Crée un bloc pour suivre tes phases de spécialisation, deload, etc.</p></div>`;
+    return;
+  }
+  const sorted = [...db.blocs].sort((a,b)=> new Date(b.dateDebut)-new Date(a.dateDebut));
+  wrap.innerHTML = sorted.map(b=>{
+    const start = toDateOnly(b.dateDebut);
+    const end = new Date(start.getTime() + b.semaines*7*86400000 - 86400000);
+    return `<div class="exo-row">
+      <div class="exo-row-head">
+        <div style="display:flex; align-items:center; gap:8px;">
+          <span class="dot" style="width:10px; height:10px; border-radius:50%; background:${b.couleur}; display:inline-block;"></span>
+          <div class="name">${b.nom}</div>
+        </div>
+        <button class="btn btn-danger btn-sm" onclick="deleteBloc('${b.id}')">Suppr.</button>
+      </div>
+      <div class="pr-line muted-line">${BLOC_TYPE_LABELS[b.type]||b.type} · ${b.semaines} sem. · ${formatDate(b.dateDebut)} → ${formatDate(end.toISOString())}</div>
+      <button class="btn btn-ghost btn-sm" style="margin-top:10px;" onclick='openBlocEditor(${JSON.stringify(b).replace(/'/g,"&#39;")})'>Modifier</button>
+    </div>`;
+  }).join('');
+}
+
 /* ---------- PROGRESSION (canvas charts, no lib) ---------- */
 function renderProgression(){
-  // populate exo select from history
-  const sel = document.getElementById('selectExoChart');
-  const exoIds = [...new Set(db.historique.flatMap(h=>h.exercices.map(e=>e.exoId)))];
-  if(exoIds.length===0){
-    sel.innerHTML = `<option>Aucune donnée</option>`;
-  } else {
-    sel.innerHTML = exoIds.map(id=>`<option value="${id}">${exoName(id)}</option>`).join('');
-  }
   drawLineChart('chartPoids', db.poids.map(p=>({x:p.date, y:p.valeur})), '#FF2E63', 'kg');
   drawLineChart('chartVolume', db.historique.map(h=>({x:h.date, y:Math.round(h.volume)})), '#E8FF3D', 'kg');
-  renderChargeChart();
 }
-function renderChargeChart(){
-  const sel = document.getElementById('selectExoChart');
-  const exoId = sel.value;
+function getChargePoints(exoId){
   const points = [];
   db.historique.forEach(h=>{
     h.exercices.forEach(ex=>{
-      if(ex.exoId===exoId){
+      if(ex.exoId===exoId && ex.series.length>0){
         const maxC = Math.max(...ex.series.map(s=>s.charge||0),0);
         points.push({x:h.date, y:maxC});
       }
     });
   });
-  drawLineChart('chartCharge', points, '#E8FF3D', 'kg');
+  return points;
 }
 function drawLineChart(canvasId, points, color, unit){
   const canvas = document.getElementById(canvasId);
