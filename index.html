@@ -208,7 +208,7 @@ nav.tabbar button.active svg{stroke:var(--accent);}
 .exo-fields{display:flex; gap:8px;}
 .exo-fields > div{flex:1;}
 .field-lbl{font-size:11px; color:var(--muted); text-transform:none; margin-bottom:4px; display:block; font-weight:500;}
-input[type=number], input[type=text], select{
+input[type=number], input[type=text], input[type=date], select{
   width:100%;
   background:rgba(255,255,255,0.06);
   border:none;
@@ -216,8 +216,9 @@ input[type=number], input[type=text], select{
   color:var(--text);
   padding:10px 12px;
   font-size:15px;
+  color-scheme: dark;
 }
-input[type=text]:focus, input[type=number]:focus, select:focus{outline:2px solid var(--accent); border-color:transparent;}
+input[type=text]:focus, input[type=number]:focus, input[type=date]:focus, select:focus{outline:2px solid var(--accent); border-color:transparent;}
 
 /* Timer / séance active */
 .timer-wrap{
@@ -322,13 +323,12 @@ input[type=text]:focus, input[type=number]:focus, select:focus{outline:2px solid
 .pill-sep{width:1px; height:20px; background:var(--line); flex-shrink:0;}
 
 /* Calendrier */
-#calGrid{display:grid; grid-template-columns:repeat(7, 1fr); gap:4px;}
-.cal-dow{text-align:center; font-size:10px; color:var(--muted); font-weight:600; padding-bottom:4px;}
-.cal-cell{aspect-ratio:1; border-radius:8px; border:1px solid transparent; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; font-size:11px; position:relative;}
+#calGrid{display:grid; grid-template-columns:repeat(7, minmax(0,1fr)); gap:3px; width:100%;}
+.cal-dow{text-align:center; font-size:9px; color:var(--muted); font-weight:600; padding-bottom:4px;}
+.cal-cell{aspect-ratio:1; min-width:0; border-radius:6px; border:1px solid transparent; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:1px; font-size:10px; position:relative; overflow:hidden;}
+.cal-cell .cal-daynum{font-size:10px;}
 .cal-cell.empty{visibility:hidden;}
 .cal-cell.today .cal-daynum{color:var(--accent); font-weight:700;}
-.cal-daynum{color:var(--text);}
-.cal-dot{width:5px; height:5px; border-radius:50%;}
 
 ::-webkit-scrollbar{width:0px;}
 </style>
@@ -405,7 +405,7 @@ input[type=text]:focus, input[type=number]:focus, select:focus{outline:2px solid
     <!-- CALENDRIER -->
     <section class="view" id="view-calendrier">
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
-        <h2 style="font-size:18px;">Calendrier des blocs</h2>
+        <h2 style="font-size:18px;">Calendrier</h2>
         <button class="btn btn-primary btn-sm" onclick="openBlocEditor()">+ Créer</button>
       </div>
 
