@@ -41,9 +41,23 @@ self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((keys) =>
       Promise.all(keys.filter((k) => k !== CACHE_NAME).map((k) => caches.delete(k)))
-    )
+    ).then(() => {
+      // Notify clients that a new version is active so they can reload
+      return self.clients.matchAll().then((clients) => {
+        clients.forEach((c) => c.postMessage({ type: 'APP_UPDATED', version: APP_VERSION }));
+      });
+    })
   );
   self.clients.claim();
+});
+
+// Allow clients to ask the service worker to check for updates immediately
+self.addEventListener('message', (event) => {
+  if (!event.data) return;
+  if (event.data.type === 'CHECK_FOR_UPDATE') {
+    // Trigger the browser to fetch an updated service worker script
+    self.registration.update();
+  }
 });
 
 self.addEventListener('fetch', (event) => {

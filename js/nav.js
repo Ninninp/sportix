@@ -13,7 +13,7 @@
    root.
    ============================================================ */
 
-import { openModal, closeModal } from './utils.js';
+import { openModal, closeModal, showInfo } from './utils.js';
 import { APP_VERSION, APP_RELEASE_DATE } from './version.js';
 import { exportData, triggerImportFile, importData } from './data-io.js';
 import { openExoEditor, saveExo, deleteExo, openExoDetail, renderExoList } from './exercices.js';
@@ -54,6 +54,28 @@ export function openPlusMenu(){
   document.getElementById('appVersionFooter').textContent = `SPORTIX v${APP_VERSION} (${APP_RELEASE_DATE})`;
   openModal('modalPlus');
 }
+export async function checkForUpdate(){
+  if(!('serviceWorker' in navigator)){
+    showInfo('Service worker non pris en charge par ce navigateur.');
+    return;
+  }
+  try{
+    const reg = await navigator.serviceWorker.getRegistration();
+    if(!reg){
+      showInfo('Aucun service worker enregistré.');
+      return;
+    }
+    showInfo('Recherche de mise à jour...');
+    await reg.update();
+    // Fallback: ask active controller to perform its update handler
+    if(navigator.serviceWorker.controller){
+      try{ navigator.serviceWorker.controller.postMessage({ type: 'CHECK_FOR_UPDATE' }); } catch(e){}
+    }
+    showInfo('Vérification terminée. Si une nouvelle version est disponible, elle sera activée automatiquement.');
+  } catch(err){
+    showInfo('Erreur lors de la vérification: ' + (err && err.message ? err.message : err));
+  }
+}
 export function goPlusHistorique(){ closeModal('modalPlus'); switchView('historique'); }
 export function goPlusExercices(){ closeModal('modalPlus'); switchView('exercices'); }
 export function goPlusCalendrier(){ closeModal('modalPlus'); switchView('calendrier'); }
@@ -64,7 +86,7 @@ export function goPlusCalendrier(){ closeModal('modalPlus'); switchView('calendr
    in the markup. */
 const actions = {
   // nav.js itself
-  switchView, openPlusMenu, goPlusHistorique, goPlusExercices, goPlusCalendrier,
+  switchView, openPlusMenu, checkForUpdate, goPlusHistorique, goPlusExercices, goPlusCalendrier,
   closeModal,
   // exercices.js
   openExoEditor, saveExo, deleteExo, openExoDetail,
