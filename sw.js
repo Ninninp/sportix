@@ -1,4 +1,11 @@
-const CACHE_NAME = 'sportix-v4';
+// This is a module service worker (registered with { type: 'module' } in
+// main.js) specifically so it can import the version constant directly
+// instead of duplicating a version string here that's easy to forget to
+// bump. The cache name is derived from js/version.js — change the app
+// version there, and the old cache is dropped automatically on next load.
+import { APP_VERSION } from './js/version.js';
+
+const CACHE_NAME = 'sportix-v' + APP_VERSION;
 const APP_SHELL = [
   './manifest.json',
   './icon-192.png',
@@ -7,6 +14,7 @@ const APP_SHELL = [
   './assets/logo.png',
   './css/styles.css',
   './js/main.js',
+  './js/version.js',
   './js/state.js',
   './js/utils.js',
   './js/calculs.js',

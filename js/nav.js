@@ -14,6 +14,7 @@
    ============================================================ */
 
 import { openModal, closeModal } from './utils.js';
+import { APP_VERSION, APP_RELEASE_DATE } from './version.js';
 import { exportData, triggerImportFile, importData } from './data-io.js';
 import { openExoEditor, saveExo, deleteExo, openExoDetail, renderExoList } from './exercices.js';
 import {
@@ -50,6 +51,7 @@ export function switchView(v){
 }
 
 export function openPlusMenu(){
+  document.getElementById('appVersionFooter').textContent = `SPORTIX v${APP_VERSION} (${APP_RELEASE_DATE})`;
   openModal('modalPlus');
 }
 export function goPlusHistorique(){ closeModal('modalPlus'); switchView('historique'); }

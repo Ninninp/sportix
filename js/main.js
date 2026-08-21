@@ -21,6 +21,9 @@ renderExoList();
 
 if('serviceWorker' in navigator){
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('sw.js').catch(err => console.log('SW registration failed:', err));
+    // { type: 'module' } lets sw.js 'import' js/version.js directrly,
+    // so the cache name always matches the current app version with zero manual bookkeeping.
+    // Supported in all current mainstream mobile browsers.
+    navigator.serviceWorker.register('sw.js', { type: 'module' }).catch(err => console.log('SW registration failed:', err));
   });
 }
