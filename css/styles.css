@@ -78,15 +78,22 @@ main{
   position:relative; z-index:1;
 }
 main > section#view-accueil {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(clamp(250px, 45vw, 400px), 1fr));
-  gap: clamp(12px, 2vw, 20px);
+  display: flex;
+  flex-direction: column;
 }
 main > section#view-accueil > * {
   min-width: 0;
 }
-.view{display:none;}
-.view.active{display:block; animation: slideIn .4s cubic-bezier(0.22,1,0.36,1);}
+
+@media (min-width: 768px) {
+  main > section#view-accueil {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(clamp(250px, 45vw, 400px), 1fr));
+    gap: clamp(12px, 2vw, 20px);
+  }
+}
+.view{display:none; opacity:0;}
+.view.active{display:block; opacity:1; animation: slideIn .4s cubic-bezier(0.22,1,0.36,1);}
 @keyframes slideIn{from{opacity:0; transform:translateX(16px);} to{opacity:1; transform:translateX(0);}}
 
 /* Tab bar — floating pill nav */
@@ -206,6 +213,7 @@ nav.tabbar button.active::before{
 .modal .btn {
   position: relative;
   overflow: hidden;
+  pointer-events: auto;
 }
 
 .modal .btn::before {
@@ -230,14 +238,22 @@ nav.tabbar button.active::before{
   transform: translateY(-2px);
 }
 
+.modal .btn:active {
+  transform: scale(0.94) !important;
+}
+
+.modal .btn-ghost:active {
+  transform: scale(0.94) !important;
+}
+
 /* Special animation for update button */
 [data-action="checkForUpdate"] {
   animation: subtlePulse 3s ease-in-out infinite;
 }
 
 @keyframes subtlePulse {
-  0%, 100% { box-shadow: 0 0 0 0 oklch(0.86 0.22 140 / 0); }
-  50% { box-shadow: 0 0 12px -3px oklch(0.86 0.22 140 / 0.4); }
+  0%, 100% { box-shadow: 0 0 0 0 oklch(0.86 0.22 140 / 0), var(--shadow-card); }
+  50% { box-shadow: 0 0 12px -3px oklch(0.86 0.22 140 / 0.4), var(--shadow-card); }
 }
 .btn:disabled{opacity:0.35; pointer-events:none;}
 .btn-primary{background-image:var(--grad-accent); color:oklch(0.16 0.01 260); font-weight:800;}
