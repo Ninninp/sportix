@@ -9,8 +9,8 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="SPORTIX">
-<link rel="apple-touch-icon" href="assets/logo_unnamed.png">
-<link rel="icon" href="assets/logo_unnamed.png">
+<link rel="apple-touch-icon" href="assets/logo_unnamed.png" sizes="180x180">
+<link rel="icon" href="assets/logo_unnamed.png" sizes="any">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/styles.css">
@@ -134,19 +134,17 @@
   <div class="modal" style="max-width:420px;">
     <button class="close-x" data-action="closeModal" data-arg="modalPlus">×</button>
     <h3>Plus</h3>
-    <div class="exo-row" style="cursor:pointer;" data-action="goPlusExercices">
-      <div class="exo-row-head" style="margin-bottom:0;">
-        <div class="name">Bibliothèque d'exercices</div>
-        <span style="color:var(--muted);">›</span>
-      </div>
+    <div class="plus-grid">
+      <button class="plus-grid-item" data-action="goPlusExercices">
+        <div class="plus-grid-icon">📚</div>
+        <div class="plus-grid-label">Exercices</div>
+      </button>
+      <button class="plus-grid-item" data-action="goPlusCalendrier">
+        <div class="plus-grid-icon">📅</div>
+        <div class="plus-grid-label">Calendrier</div>
+      </button>
     </div>
-    <div class="exo-row" style="cursor:pointer;" data-action="goPlusCalendrier">
-      <div class="exo-row-head" style="margin-bottom:0;">
-        <div class="name">Calendrier des blocs</div>
-        <span style="color:var(--muted);">›</span>
-      </div>
-    </div>
-    <div class="card-title" style="margin-top:16px;">Mes données</div>
+    <div class="card-title" style="margin-top:20px;">Mes données</div>
     <div style="display:flex; gap:8px;">
       <button class="btn btn-ghost btn-sm" style="flex:1;" data-action="exportData">Exporter (.json)</button>
       <button class="btn btn-ghost btn-sm" style="flex:1;" data-action="triggerImportFile">Importer</button>
