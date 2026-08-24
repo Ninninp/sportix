@@ -73,7 +73,7 @@ header.topbar .date{
 }
 main{
   flex:1;
-  padding: 0 clamp(12px, 2vw, 32px) clamp(80px, 12vh, 88px) clamp(12px, 2vw, 32px);
+  padding: 0 16px clamp(80px, 12vh, 88px) 16px;
   overflow-y:auto;
   position:relative; z-index:1;
 }
@@ -83,14 +83,6 @@ main > section#view-accueil {
 }
 main > section#view-accueil > * {
   min-width: 0;
-}
-
-@media (min-width: 768px) {
-  main > section#view-accueil {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(clamp(250px, 45vw, 400px), 1fr));
-    gap: clamp(12px, 2vw, 20px);
-  }
 }
 .view{display:none; opacity:0;}
 .view.active{display:block; animation: fadeIn .3s ease;}
@@ -123,12 +115,13 @@ nav.tabbar{
 .tab-slider {
   position: absolute;
   left: 6px;
-  top: 6px;
-  bottom: 6px;
+  top: 50%;
+  transform: translateY(-50%);
   width: 52px;
+  height: 52px;
   background: var(--grad-accent);
   border-radius: 50%;
-  box-shadow: 0 6px 20px -6px oklch(0.86 0.22 140 / 0.7);
+  box-shadow: 0 2px 8px -2px oklch(0.86 0.22 140 / 0.4);
   transition: left .4s cubic-bezier(0.22, 1, 0.36, 1);
   pointer-events: none;
   z-index: 0;
@@ -771,50 +764,5 @@ input[type=text]:focus, input[type=number]:focus, input[type=date]:focus, select
   /* Still hide recent PRs to keep breathing room */
   .recent-prs-card {
     display: none;
-  }
-}
-
-/* ========== RESPONSIVE: Wide screens (> 700px height or wide viewports) ========== */
-@media (min-height: 700px), (min-width: 900px) {
-  #app {
-    max-width: 1200px;
-    margin: 0 auto;
-  }
-
-  main {
-    padding: 0 clamp(16px, 5vw, 48px) clamp(80px, 12vh, 88px) clamp(16px, 5vw, 48px);
-  }
-
-  main > section#view-accueil {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(clamp(280px, 45vw, 380px), 1fr));
-    gap: clamp(16px, 3vw, 24px);
-  }
-
-  /* Constrain other sections to max-width for readability */
-  main > section:not(#view-accueil) {
-    max-width: 600px;
-    margin: 0 auto;
-  }
-
-  /* Show recent PRs again on larger screens */
-  .recent-prs-card {
-    display: block;
-  }
-
-  /* Hero day and cards span full width on single-column, but adjust padding */
-  #blocBannerWrap {
-    grid-column: 1 / -1;
-  }
-
-  #heroDayWrap {
-    grid-column: 1 / -1;
-  }
-
-  /* On very wide screens (3+ columns), stack stats and recent PRs side-by-side */
-  @media (min-width: 1000px) {
-    main > section#view-accueil {
-      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-    }
   }
 }
