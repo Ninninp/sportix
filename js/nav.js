@@ -42,12 +42,24 @@ export function switchView(v){
   const plusViews = ['exercices', 'calendrier'];
   const activeNavKey = plusViews.includes(v) ? 'plus' : v;
   document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.view === activeNavKey));
+  updateTabSlider();
   if(v === 'accueil') renderAccueil();
   if(v === 'seances') renderSeancesList();
   if(v === 'historique') renderHistorique();
   if(v === 'exercices') renderExoList();
   if(v === 'progression') renderProgression();
   if(v === 'calendrier') renderCalendrier();
+}
+
+function updateTabSlider(){
+  const activeBtn = document.querySelector('.tab-btn.active');
+  const slider = document.querySelector('.tab-slider');
+  if(activeBtn && slider){
+    const btnRect = activeBtn.getBoundingClientRect();
+    const barRect = document.querySelector('.tabbar-inner').getBoundingClientRect();
+    const offsetLeft = btnRect.left - barRect.left;
+    slider.style.left = offsetLeft + 'px';
+  }
 }
 
 export function openPlusMenu(){
