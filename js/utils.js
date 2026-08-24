@@ -6,10 +6,25 @@
    ============================================================ */
 
 export function openModal(id){
-  document.getElementById(id).classList.remove('hidden');
+  const overlay = document.getElementById(id);
+  overlay.classList.remove('hidden', 'closing');
+  // Force layout so the browser registers the "hidden" starting state
+  // before we add "open" — otherwise the transition can get skipped.
+  overlay.offsetHeight;
+  overlay.classList.add('open');
 }
 export function closeModal(id){
-  document.getElementById(id).classList.add('hidden');
+  const overlay = document.getElementById(id);
+  if(overlay.classList.contains('hidden')) return;
+  overlay.classList.remove('open');
+  overlay.classList.add('closing');
+  const onEnd = (e) => {
+    if(e.target !== overlay) return;
+    overlay.classList.add('hidden');
+    overlay.classList.remove('closing');
+    overlay.removeEventListener('transitionend', onEnd);
+  };
+  overlay.addEventListener('transitionend', onEnd);
 }
 
 export function formatDate(iso){

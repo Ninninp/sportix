@@ -69,17 +69,16 @@ function renderHeroDay(){
   if(isAutoToday) s = todaySeances[0];
 
   const picker = `
-    <div class="card" style="margin-top:-2px;">
-      <div class="card-title">Changer de séance</div>
-      <div class="pill-scroll">
-        <button type="button" class="pill ${isAutoToday ? 'active' : ''}" data-action="resetAccueilToToday">Séance du jour</button>
-        <span class="pill-sep"></span>
-        ${db.seances.map(sc => {
-          const isToday = todaySeances.some(t => t.id === sc.id);
-          const isSelected = s && sc.id === s.id && !isAutoToday;
-          return `<button type="button" class="pill ${isSelected ? 'active' : ''}" data-action="selectAccueilSeance" data-arg="${sc.id}">${sc.nom}${isToday ? ' •' : ''}</button>`;
-        }).join('')}
-      </div>
+    <div class="hero-picker-divider"></div>
+    <div class="card-title" style="margin-bottom:8px;">Changer de séance</div>
+    <div class="pill-scroll">
+      <button type="button" class="pill ${isAutoToday ? 'active' : ''}" data-action="resetAccueilToToday">Séance du jour</button>
+      <span class="pill-sep"></span>
+      ${db.seances.map(sc => {
+        const isToday = todaySeances.some(t => t.id === sc.id);
+        const isSelected = s && sc.id === s.id && !isAutoToday;
+        return `<button type="button" class="pill ${isSelected ? 'active' : ''}" data-action="selectAccueilSeance" data-arg="${sc.id}">${sc.nom}${isToday ? ' •' : ''}</button>`;
+      }).join('')}
     </div>`;
 
   if(s){
@@ -93,22 +92,24 @@ function renderHeroDay(){
       <h2 style="display:inline;">${s.nom}</h2>${deloadBadge}
       <div class="sub">${s.exercices.length} exercices · repos ${s.repos}s entre chaque</div>
       ${extra}
-      <button class="btn btn-primary btn-block animate-pulse-glow" data-action="startSeance" data-arg="${s.id}">Démarrer la séance</button>
+      <button class="btn btn-primary btn-block btn-cta-compact animate-pulse-glow" data-action="startSeance" data-arg="${s.id}">Démarrer la séance</button>
       <div class="stat-row">
-        <div class="stat-box"><div class="num mono">${db.historique.length}</div><div class="lbl">Séances faites</div></div>
-        <div class="stat-box"><div class="num mono">${currentStreak()}</div><div class="lbl">Jours de suite</div></div>
+        <div class="week-stat-compact"><span class="num mono">${db.historique.length}</span><span class="lbl">séances faites</span></div>
+        <div class="week-stat-compact"><span class="num mono">${currentStreak()}</span><span class="lbl">jours de suite</span></div>
       </div>
-    </div>` + picker;
+      ${picker}
+    </div>`;
   } else {
     wrap.innerHTML = `<div class="hero-day">
       <div class="eyebrow">${DAY_NAMES_FULL[new Date().getDay()]}</div>
       <h2>Repos aujourd'hui</h2>
       <div class="sub">Aucune séance assignée à ce jour. Choisis-en une ci-dessous si tu veux t'entraîner quand même.</div>
       <div class="stat-row">
-        <div class="stat-box"><div class="num mono">${db.historique.length}</div><div class="lbl">Séances faites</div></div>
-        <div class="stat-box"><div class="num mono">${currentStreak()}</div><div class="lbl">Jours de suite</div></div>
+        <div class="week-stat-compact"><span class="num mono">${db.historique.length}</span><span class="lbl">séances faites</span></div>
+        <div class="week-stat-compact"><span class="num mono">${currentStreak()}</span><span class="lbl">jours de suite</span></div>
       </div>
-    </div>` + picker;
+      ${picker}
+    </div>`;
   }
 }
 
@@ -118,22 +119,22 @@ function renderWeekStats(){
   const weekSessions = db.historique.filter(h => new Date(h.date) >= weekAgo);
   const totalVol = weekSessions.reduce((acc, h) => acc + h.volume, 0);
   document.getElementById('weekStats').innerHTML = `
-    <div class="stat-box animate-bounce-in" style="animation-delay:0ms;"><div class="num mono">${weekSessions.length}</div><div class="lbl">Séances</div></div>
-    <div class="stat-box animate-bounce-in" style="animation-delay:80ms;"><div class="num mono">${Math.round(totalVol)}</div><div class="lbl">Volume (kg)</div></div>
-    <div class="stat-box animate-bounce-in" style="animation-delay:160ms;"><div class="num mono">${db.poids.length ? db.poids[db.poids.length - 1].valeur : '—'}</div><div class="lbl">Poids (kg)</div></div>
+    <div class="week-stat-compact animate-bounce-in" style="animation-delay:0ms;"><span class="num mono">${weekSessions.length}</span><span class="lbl">séances</span></div>
+    <div class="week-stat-compact animate-bounce-in" style="animation-delay:80ms;"><span class="num mono">${Math.round(totalVol)}</span><span class="lbl">kg volume</span></div>
+    <div class="week-stat-compact animate-bounce-in" style="animation-delay:160ms;"><span class="num mono">${db.poids.length ? db.poids[db.poids.length - 1].valeur : '—'}</span><span class="lbl">kg poids</span></div>
   `;
 }
 
 function renderRecentPRs(){
   const prs = computePRs();
-  const recent = Object.values(prs).sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, 4);
+  const recent = Object.values(prs).sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, 2);
   const prsEl = document.getElementById('recentPRs');
   if(recent.length === 0){
     prsEl.innerHTML = `<p style="color:var(--muted); font-size:13px;">Termine une séance pour voir apparaître tes records.</p>`;
     return;
   }
-  prsEl.innerHTML = recent.map((p, i) => `<div class="hist-item animate-slide-in" style="animation-delay:${i * 70}ms;">
-    <div class="d"><div class="nm">${p.nom}</div><div class="dt">${formatDate(p.date)}</div></div>
+  prsEl.innerHTML = recent.map((p, i) => `<div class="hist-item hist-item-compact animate-slide-in" style="animation-delay:${i * 70}ms;">
+    <div class="d"><span class="nm">${p.nom}</span> <span class="dt">· ${formatDate(p.date)}</span></div>
     <div class="vol">${p.charge} kg</div>
   </div>`).join('');
 }

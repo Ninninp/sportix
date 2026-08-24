@@ -39,7 +39,7 @@ import {
 export function switchView(v){
   document.querySelectorAll('.view').forEach(el => el.classList.remove('active'));
   document.getElementById('view-' + v).classList.add('active');
-  const plusViews = ['historique', 'exercices', 'calendrier'];
+  const plusViews = ['exercices', 'calendrier'];
   const activeNavKey = plusViews.includes(v) ? 'plus' : v;
   document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.view === activeNavKey));
   if(v === 'accueil') renderAccueil();
@@ -51,9 +51,12 @@ export function switchView(v){
 }
 
 export function openPlusMenu(){
-  document.getElementById('appVersionFooter').textContent = `SPORTIX v${APP_VERSION} (${APP_RELEASE_DATE})`;
+  document.getElementById('appVersionFooter').textContent = `SPORTIX v${APP_VERSION} · ${APP_RELEASE_DATE}`;
   openModal('modalPlus');
 }
+export function goPlusExercices(){ closeModal('modalPlus'); switchView('exercices'); }
+export function goPlusCalendrier(){ closeModal('modalPlus'); switchView('calendrier'); }
+
 export async function checkForUpdate(){
   if(!('serviceWorker' in navigator)){
     showInfo('Service worker non pris en charge par ce navigateur.');
@@ -67,18 +70,15 @@ export async function checkForUpdate(){
     }
     showInfo('Recherche de mise à jour...');
     await reg.update();
-    // Fallback: ask active controller to perform its update handler
+    // Fallback: ask the active controller to run its own update check too
     if(navigator.serviceWorker.controller){
       try{ navigator.serviceWorker.controller.postMessage({ type: 'CHECK_FOR_UPDATE' }); } catch(e){}
     }
     showInfo('Vérification terminée. Si une nouvelle version est disponible, elle sera activée automatiquement.');
   } catch(err){
-    showInfo('Erreur lors de la vérification: ' + (err && err.message ? err.message : err));
+    showInfo('Erreur lors de la vérification : ' + (err && err.message ? err.message : err));
   }
 }
-export function goPlusHistorique(){ closeModal('modalPlus'); switchView('historique'); }
-export function goPlusExercices(){ closeModal('modalPlus'); switchView('exercices'); }
-export function goPlusCalendrier(){ closeModal('modalPlus'); switchView('calendrier'); }
 
 /* ---------- Action registry ----------
    Every function reachable from a data-action/data-onchange/data-oninput
@@ -86,7 +86,7 @@ export function goPlusCalendrier(){ closeModal('modalPlus'); switchView('calendr
    in the markup. */
 const actions = {
   // nav.js itself
-  switchView, openPlusMenu, checkForUpdate, goPlusHistorique, goPlusExercices, goPlusCalendrier,
+  switchView, openPlusMenu, checkForUpdate, goPlusExercices, goPlusCalendrier,
   closeModal,
   // exercices.js
   openExoEditor, saveExo, deleteExo, openExoDetail,

@@ -54,16 +54,18 @@ Le projet est né d'un usage personnel très concret : suivre un programme de sp
 - Fiche détail par exercice : record, nombre de séances réalisées, dernière utilisation, graphique de charge dédié
 
 ### Accueil
-- Séance du jour déterminée automatiquement selon le jour de la semaine, avec possibilité de choisir une autre séance manuellement
+- Séance du jour déterminée automatiquement selon le jour de la semaine, avec possibilité de choisir une autre séance manuellement (sélecteur intégré directement à la carte de séance)
 - Statistiques de la semaine (séances, volume, poids), records récents
+- Mise en page pensée pour tenir sur un seul écran sans défilement, y compris sur petits formats (iPhone SE)
 
 ### Données
-- Export/import complet en JSON (sauvegarde et transfert entre appareils)
+- Export/import complet en JSON (sauvegarde et transfert entre appareils), accessible depuis le menu **Plus**
 - Toutes les données stockées en local (`localStorage`) — aucun compte, aucun serveur
 
 ### PWA
 - Installable sur écran d'accueil (iOS/Android)
 - Fonctionnement hors-ligne via service worker (stratégie *network-first* pour le HTML afin que les mises à jour soient prises en compte immédiatement, *cache-first* pour les assets statiques)
+- **Mise à jour automatique** : après activation d'une nouvelle version du service worker, l'app se recharge automatiquement pour utiliser les nouveaux fichiers, sans manipulation. Un bouton **"Vérifier la mise à jour"** (menu Plus) permet aussi de forcer la vérification manuellement à tout moment.
 
 ## Technologies
 
@@ -89,6 +91,7 @@ sportix-app/
 │   └── styles.css
 └── js/
     ├── main.js               # Point d'entrée : init + enregistrement du service worker
+    ├── version.js            # Source unique du numéro de version
     ├── state.js              # `db` (persistance localStorage) + état partagé minimal
     ├── utils.js              # Modales génériques (confirm/info), formatage de dates
     ├── calculs.js            # Logique métier pure : PR, volume, deload, streak — sans accès DOM
@@ -157,8 +160,20 @@ Cinq exercices de base sont créés automatiquement au premier lancement si la b
 
 - Aucune synchronisation entre appareils : les données sont locales à chaque navigateur/téléphone (l'export/import JSON permet une sauvegarde ou un transfert manuel)
 - Aucun test automatisé à ce jour
-- Le contenu mis en cache par le service worker doit être maintenu manuellement en cohérence avec la liste des fichiers du projet
+- La liste des fichiers mis en cache par le service worker (`APP_SHELL` dans `sw.js`) doit être maintenue manuellement à chaque ajout de fichier — seul le nom du cache (version) est automatique
 
 ## Version
 
-Service worker en cache `sportix-v4` — pas de système de versionnage sémantique formalisé à ce stade du projet.
+**Version actuelle : 0.2.0** (23/08/2026)
+
+La version est centralisée dans `js/version.js` (`APP_VERSION`, `APP_RELEASE_DATE`) :
+
+- Affichée dans l'app, en bas du menu **Plus**
+- Le service worker (`sw.js`) est enregistré comme *module* et importe cette constante directement pour nommer son cache (`sportix-v{APP_VERSION}`) — changer la version invalide automatiquement l'ancien cache au chargement suivant, sans avoir à synchroniser un numéro à la main à deux endroits
+
+**Convention** (appliquée manuellement, pas d'outil de versionnage automatisé) :
+- `MAJOR` — changement de modèle de données nécessitant une migration
+- `MINOR` — nouvelle fonctionnalité
+- `PATCH` — correctif ou ajustement visuel
+
+Pour publier une nouvelle version : modifier `APP_VERSION`/`APP_RELEASE_DATE` dans `js/version.js`, c'est le seul endroit à toucher.

@@ -13,5 +13,5 @@
    - PATCH: bug fix / visual tweak
    ============================================================ */
 
-export const APP_VERSION = '0.1.2';
-export const APP_RELEASE_DATE = '2026-08-21';
+export const APP_VERSION = '0.2.0';
+export const APP_RELEASE_DATE = '2026-08-23';

@@ -8,10 +8,10 @@ import { APP_VERSION } from './js/version.js';
 const CACHE_NAME = 'sportix-v' + APP_VERSION;
 const APP_SHELL = [
   './manifest.json',
-  './icon-192.png',
-  './icon-512.png',
-  './icon-maskable-512.png',
-  './assets/logo.png',
+  './assets/logo_unnamed.png',
+  './assets/logo_unnamed.png',
+  './assets/logo_unnamed.png',
+  './assets/logo_unnamed.png',
   './css/styles.css',
   './js/main.js',
   './js/version.js',

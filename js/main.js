@@ -22,11 +22,16 @@ renderExoList();
 if('serviceWorker' in navigator){
   window.addEventListener('load', async () => {
     try {
+      // { type: 'module' } lets sw.js `import` js/version.js directly, so the
+      // cache name always matches the current app version with zero manual
+      // bookkeeping. Supported in all current mainstream mobile browsers.
       const reg = await navigator.serviceWorker.register('sw.js', { type: 'module' });
       // Ask the browser to check for an updated service worker immediately
       reg.update();
 
-      // Reload the page when a new service worker takes control to ensure fresh assets
+      // Reload the page when a new service worker takes control, so the
+      // person always ends up running the assets that match that worker
+      // (avoids a stale UI talking to a freshly-activated cache).
       let refreshing = false;
       navigator.serviceWorker.addEventListener('controllerchange', () => {
         if (refreshing) return;
@@ -34,11 +39,12 @@ if('serviceWorker' in navigator){
         window.location.reload();
       });
 
-      // Listen for messages from the service worker about updates
+      // Belt-and-suspenders: also reload on the explicit APP_UPDATED message
+      // sent by sw.js after activation, in case controllerchange doesn't
+      // fire (e.g. this was the very first install, with no prior controller).
       navigator.serviceWorker.addEventListener('message', (e) => {
         if (e.data && e.data.type === 'APP_UPDATED') {
           console.log('New app version available:', e.data.version);
-          // Force a reload so clients get the new assets from the newly activated SW
           window.location.reload();
         }
       });
