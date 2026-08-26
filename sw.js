@@ -8,9 +8,9 @@ import { APP_VERSION } from './js/version.js';
 const CACHE_NAME = 'sportix-v' + APP_VERSION;
 const APP_SHELL = [
   './manifest.json',
-  './assets/logo_unnamed.png',
-  './assets/logo_unnamed.png',
-  './assets/logo_unnamed.png',
+  './icon-192.png',
+  './icon-512.png',
+  './icon-maskable-512.png',
   './assets/logo_unnamed.png',
   './css/styles.css',
   './js/main.js',
@@ -39,10 +39,16 @@ self.addEventListener('install', (event) => {
 
 self.addEventListener('activate', (event) => {
   event.waitUntil(
-    caches.keys().then((keys) =>
-      Promise.all(keys.filter((k) => k !== CACHE_NAME).map((k) => caches.delete(k)))
-    ).then(() => {
-      // Notify clients that a new version is active so they can reload
+    caches.keys().then((keys) => {
+      const oldKeys = keys.filter((k) => k !== CACHE_NAME);
+      return Promise.all(oldKeys.map((k) => caches.delete(k))).then(() => oldKeys.length > 0);
+    }).then((hadOldCache) => {
+      // Only notify clients if this activation actually replaced a previous
+      // version. On a brand-new install there's no old cache to replace, so
+      // reloading the page here would just interrupt the very first render
+      // (this was the exact cause of the "content flashes then disappears"
+      // bug — the SW's first-ever activation fired the reload mid-animation).
+      if (!hadOldCache) return;
       return self.clients.matchAll().then((clients) => {
         clients.forEach((c) => c.postMessage({ type: 'APP_UPDATED', version: APP_VERSION }));
       });

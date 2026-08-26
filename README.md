@@ -56,7 +56,7 @@ Le projet est né d'un usage personnel très concret : suivre un programme de sp
 ### Accueil
 - Séance du jour déterminée automatiquement selon le jour de la semaine, avec possibilité de choisir une autre séance manuellement (sélecteur intégré directement à la carte de séance)
 - Statistiques de la semaine (séances, volume, poids), records récents
-- Mise en page pensée pour tenir sur un seul écran sans défilement, y compris sur petits formats (iPhone SE)
+- Mise en page adaptative par paliers de hauteur d'écran (media queries) garantissant qu'aucun défilement n'est nécessaire, y compris sur les très petits écrans (le bloc "Records récents" s'efface automatiquement en dessous d'une certaine hauteur pour laisser la priorité à la séance du jour)
 
 ### Données
 - Export/import complet en JSON (sauvegarde et transfert entre appareils), accessible depuis le menu **Plus**
@@ -65,7 +65,7 @@ Le projet est né d'un usage personnel très concret : suivre un programme de sp
 ### PWA
 - Installable sur écran d'accueil (iOS/Android)
 - Fonctionnement hors-ligne via service worker (stratégie *network-first* pour le HTML afin que les mises à jour soient prises en compte immédiatement, *cache-first* pour les assets statiques)
-- **Mise à jour automatique** : après activation d'une nouvelle version du service worker, l'app se recharge automatiquement pour utiliser les nouveaux fichiers, sans manipulation. Un bouton **"Vérifier la mise à jour"** (menu Plus) permet aussi de forcer la vérification manuellement à tout moment.
+- **Mise à jour automatique** : lorsqu'une nouvelle version du service worker remplace une version précédemment installée, l'app se recharge automatiquement pour utiliser les nouveaux fichiers. Ce rechargement ne se déclenche jamais lors de la toute première installation (seulement lors d'un vrai changement de version), pour éviter d'interrompre le premier affichage. Un bouton **"Vérifier la mise à jour"** (menu Plus) permet aussi de forcer la vérification manuellement à tout moment.
 
 ## Technologies
 
@@ -161,10 +161,11 @@ Cinq exercices de base sont créés automatiquement au premier lancement si la b
 - Aucune synchronisation entre appareils : les données sont locales à chaque navigateur/téléphone (l'export/import JSON permet une sauvegarde ou un transfert manuel)
 - Aucun test automatisé à ce jour
 - La liste des fichiers mis en cache par le service worker (`APP_SHELL` dans `sw.js`) doit être maintenue manuellement à chaque ajout de fichier — seul le nom du cache (version) est automatique
+- Point de vigilance pour toute future modification du mécanisme de mise à jour auto : `sw.js` ne doit notifier `APP_UPDATED` que si un ancien cache existait réellement (vraie mise à jour), et `main.js` ne doit recharger sur `controllerchange` que s'il existait déjà un contrôleur avant l'enregistrement — sans ces deux garde-fous, la toute première installation déclenche elle-même un rechargement, interrompant le premier rendu (symptôme observé : le contenu apparaît puis disparaît juste après le chargement)
 
 ## Version
 
-**Version actuelle : 0.2.0** (23/08/2026)
+**Version actuelle : 0.3.0** (26/08/2026)
 
 La version est centralisée dans `js/version.js` (`APP_VERSION`, `APP_RELEASE_DATE`) :
 

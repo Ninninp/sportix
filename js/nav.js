@@ -39,7 +39,7 @@ import {
 export function switchView(v){
   document.querySelectorAll('.view').forEach(el => el.classList.remove('active'));
   document.getElementById('view-' + v).classList.add('active');
-  const plusViews = ['exercices', 'calendrier'];
+  const plusViews = ['historique', 'exercices', 'calendrier'];
   const activeNavKey = plusViews.includes(v) ? 'plus' : v;
   document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.view === activeNavKey));
   updateTabSlider();
@@ -51,7 +51,7 @@ export function switchView(v){
   if(v === 'calendrier') renderCalendrier();
 }
 
-function updateTabSlider(){
+export function updateTabSlider(){
   const activeBtn = document.querySelector('.tab-btn.active');
   const slider = document.querySelector('.tab-slider');
   if(activeBtn && slider){
@@ -61,6 +61,7 @@ function updateTabSlider(){
     slider.style.left = offsetLeft + 'px';
   }
 }
+window.addEventListener('resize', updateTabSlider);
 
 export function openPlusMenu(){
   document.getElementById('appVersionFooter').textContent = `SPORTIX v${APP_VERSION} · ${APP_RELEASE_DATE}`;
